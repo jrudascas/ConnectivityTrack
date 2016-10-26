@@ -83,7 +83,7 @@ if os.path.exists(definitions.Definitions.tempPath):
 os.mkdir(definitions.Definitions.tempPath)
 
 if (fdwiName2 != ""):
-    print('-> Preprocesado imagen estructural')
+    print('-> Preprocesado image estructural')
     fsl.BET(fdwiT1, definitions.Definitions.pathOUT + refName + '_Structural_BET.nii', '-f .4')
 
     if not(os.path.exists(definitions.Definitions.pathOUT + refName + '_Structural_Normalized.nii')):
