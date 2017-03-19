@@ -1,5 +1,3 @@
-#from docutils.nodes import definition
-
 __author__ = 'Jrudascas'
 
 from dipy.core.gradients import gradient_table
@@ -22,7 +20,18 @@ import Tools as tools
 import scipy.ndimage as ndim
 
 def EddyCorrect_DWI (file_in, outPath, ref_bo):
+    """
+    Prueba documental.
 
+    In:
+
+    file_in: akakakakka
+    outPath: kakakasjdjdlllf kklkd
+    ref_bo. kskskdejien skkd  dllkd
+
+    Out:
+
+    """
     print('Eddy Correction...')
     refNameOnly = utils.extractFileName(file_in)
 
@@ -41,6 +50,7 @@ def Reslice_DWI (file_in, outPath, vox_sz):
 
     refNameOnly = utils.extractFileName(file_in)
     if not(os.path.exists(outPath + utils.extractFileName(file_in) + definitions.Definitions.idReslice + definitions.Definitions.extension)):
+    #if (1):
 
        img = nib.load(file_in)
        data = img.get_data()
@@ -208,7 +218,7 @@ def EstimateMapsDTI(file_in, file_inMask, file_tensorFitevecs, file_tensorFiteva
     sphere = get_sphere('symmetric724')
     peak_indices = quantize_evecs(evecs, sphere.vertices)
 
-    eu = EuDX(FA.astype('f8'), peak_indices, seeds=100000, odf_vertices = sphere.vertices, a_low=0.15)
+    eu = EuDX(FA.astype('f8'), peak_indices, seeds=500000, odf_vertices = sphere.vertices, a_low=0.15)
     tensor_streamlines = [streamline for streamline in eu]
     new_vox_sz = (definitions.Definitions.vox_sz, definitions.Definitions.vox_sz, definitions.Definitions.vox_sz)
     hdr = nib.trackvis.empty_header()
@@ -217,26 +227,36 @@ def EstimateMapsDTI(file_in, file_inMask, file_tensorFitevecs, file_tensorFiteva
     hdr['dim'] = FA.shape
 
     tensor_streamlines_trk = ((sl, None, None) for sl in tensor_streamlines)
-    streamlines = list(eu)
     ten_sl_fname = outPath + refNameOnly + '_Tractografia.trk'
     nib.trackvis.write(ten_sl_fname, tensor_streamlines_trk, hdr, points_space='voxel')
+    return tensor_streamlines, eu.affine
 
-    """
+"""""""""
     from dipy.reconst.shm import CsaOdfModel
     from dipy.data import default_sphere
     from dipy.direction import peaks_from_model
+    from dipy.tracking import utils
+    from dipy.tracking.local import ThresholdTissueClassifier
+    from dipy.tracking.local import LocalTracking
+    import time
+    from dipy.io.trackvis import save_trk
 
     bvals, bvecs = read_bvals_bvecs(fbval, fbvec)
     gtab = gradient_table(bvals, bvecs)
+
+    print(file_in)
+    print(file_inMask)
+    print(fbval)
+    print(fbvec)
 
     dataDWI = nib.load(file_in)
     data = dataDWI.get_data()
     affine = dataDWI.get_affine()
 
-    old_vox_sz = dataDWI.get_header().get_zooms()[:3]
-    if np.unique(old_vox_sz).size != 1:
-        new_vox_sz = (2.0, 2.0, 2.0)
-        data, affine = reslice(data, affine, old_vox_sz, new_vox_sz)
+    #old_vox_sz = dataDWI.get_header().get_zooms()[:3]
+    #if np.unique(old_vox_sz).size != 1:
+    #new_vox_sz = (2.0, 2.0, 2.0)
+    #data, affine = reslice(data, affine, old_vox_sz, new_vox_sz)
 
     dataMask = nib.load(file_inMask)
     mask = dataMask.get_data()
@@ -246,16 +266,11 @@ def EstimateMapsDTI(file_in, file_inMask, file_tensorFitevecs, file_tensorFiteva
                                  relative_peak_threshold=.7,
                                  min_separation_angle=45, mask=mask)
 
-    from dipy.tracking.local import ThresholdTissueClassifier
 
     classifier = ThresholdTissueClassifier(csa_peaks.gfa, .25)
-
-    from dipy.tracking import utils
-
-    #seed_mask = labels == 2
     seeds = utils.seeds_from_mask(mask, density=[2, 2, 2], affine=affine)
 
-    from dipy.tracking.local import LocalTracking
+
 
     # Initialization of LocalTracking. The computation happens in the next step.
 
@@ -265,7 +280,7 @@ def EstimateMapsDTI(file_in, file_inMask, file_tensorFitevecs, file_tensorFiteva
     streamlines = [s for s in streamlines if s.shape[0]>20]
 
     streamlines = list(streamlines)
-    save_trk("CSA_deterministic.trk", streamlines, affine, white_matter.shape)
+    save_trk("CSA_deterministic.trk", streamlines, affine, mask.shape)
 
     print("End: " + time.strftime("%H:%M:%S"))
 
@@ -297,13 +312,14 @@ def EstimateMapsDTI(file_in, file_inMask, file_tensorFitevecs, file_tensorFiteva
     # Compute streamlines and store as a list.
     streamlines = list(streamlines)
 
-    save_trk("CSD_probabilistic.trk", streamlines, affine, white_matter.shape)
+    save_trk("CSD_probabilistic.trk", streamlines, affine, mask.shape)
 
     print("End: " + time.strftime("%H:%M:%S"))
-    """
-    return streamlines, eu.affine
+"""""""""
 
-"""def affine_registration(file_in, bvec, bval, outPath):
+
+"""""""""
+def affine_registration(file_in, bvec, bval, outPath):
     img_DWI = nib.load(file_in)
     data_DWI = img_DWI.get_data()
     affine_DWI = img_DWI.get_affine()
@@ -320,7 +336,8 @@ def EstimateMapsDTI(file_in, file_inMask, file_tensorFitevecs, file_tensorFiteva
     MNI_T2_affine = MNI_T2.get_affine()
 
     return tools.affine_registration(mean_b0, MNI_T2_data, moving_grid2world=affine_DWI, static_grid2world=MNI_T2_affine)
-"""
+"""""""""
+
 def registrationDWItoNMI(file_in, bvec, bval, outPath):
 
     img_DWI = nib.load(file_in)
@@ -473,36 +490,61 @@ def register_atlas(pathAtlas, outPath, affineSubject, mapping):
     #filled_warped_corpus_callosum= ndim.binary_fill_holes(bin_warped_corpus_callosum.astype(int)).astype(int)
     #nib.save(nib.Nifti1Image(filled_warped_corpus_callosum.astype(np.float32), dwiPreprocessed.get_affine()),  definitions.Definitions.pathOUT + 'warped_corpus_callosum.nii.gz')
 
-def connectivity_matrix2(streamlines, label_volume, affine, voxel_size=None):
+def connectivity_matrix2(streamlines, label_volume, affine, shape, voxel_size=None):
     from dipy.tracking._utils  import (_mapping_to_voxel, _to_voxel_coordinates)
 
+    endpoints = [sl for sl in streamlines]
     lin_T, offset = _mapping_to_voxel(affine, voxel_size)
-
+    #endpoints = _to_voxel_coordinates(streamlines, lin_T, offset)
+    #endpoints = endpoints.astype(int)
+    #streamlines = list(endpoints)
+    #endlabels2 = label_volume[i2, j2, k2]
+    myList = []
     indexROI = np.unique(label_volume)
+    indexROI.sort(0)
     matriz = np.zeros(shape=(len(indexROI),len(indexROI)))
+    from decimal import Decimal
 
     for ROI in indexROI:
         ROIimg = (label_volume == ROI)
         ROIimg = ROIimg.astype(int)
 
+        print(ROI)
+
         for ROI2 in indexROI:
-            if (ROI2 >= ROI ):
-                ROI2img = (label_volume == ROI2)
-                ROI2img = ROI2img.astype(int)
+            #if ((ROI == 1) & (ROI2 == 2)):
+            if (1):
+                if (ROI2 > ROI ):
+                    ROI2img = (label_volume == ROI2)
+                    ROI2img = ROI2img.astype(int)
 
-                for sl in streamlines:
-                    #sl += offset
-                    sl_mapping = sl.astype(int)
-                    i, j, k = sl_mapping.T
-                    labelsROI  = ROIimg[i, j, k]
-                    labelsROI2 = ROI2img[i, j, k]
+                    for sl in streamlines:
+                        #sl += offset
+                        sl_Aux = sl
+                        sl = _to_voxel_coordinates(sl, lin_T, offset)
+                        i, j, k = sl.T
+                        #i2, j2, k2 = endpoints.T
 
-                    if ((sum(labelsROI) > 0) & (sum(labelsROI2) > 0)):
-                        matriz[ROI,ROI2] = matriz[ROI,ROI2] + 1
+                        labelsROI  = ROIimg[i, j, k]
+                        labelsROI2 = ROI2img[i, j, k]
+
+                        if ((sum(labelsROI) > 0) & (sum(labelsROI2) > 0)):
+                            matriz[ROI,ROI2] = matriz[ROI,ROI2] + 1
+                            #myList.append(sl_Aux)
+
+    #print(myList.__len__())
+
+    #new_vox_sz = (definitions.Definitions.vox_sz, definitions.Definitions.vox_sz, definitions.Definitions.vox_sz)
+    #hdr = nib.trackvis.empty_header()
+    #hdr['voxel_size'] = new_vox_sz
+    #hdr['voxel_order'] = 'LAS'
+    #hdr['dim'] = shape
+
+    #tensor_streamlines_trk = ((sl, None, None) for sl in myList)
+    #ten_sl_fname = definitions.Definitions.pathOUT + '_TractografiaROI.trk'
+    #nib.trackvis.write(ten_sl_fname, tensor_streamlines_trk, hdr, points_space='voxel')
+
     return matriz.astype(int)
-
-
-    #for sl in streamlines:
 
 def connectivity_matrix(streamlines, label_volume, voxel_size=None,
                         affine=None, symmetric=True, return_mapping=False,

@@ -1,6 +1,6 @@
 __author__ = 'brain'
 
-import ProcessData as processDatas
+import ProcessData as processData
 
 def Processing_DWI (file_in, file_inMask, outPath, fbval, fbvec, mapping, affine_mapping):
     listev = processData.DTIModel(file_in, file_inMask, outPath, fbval, fbvec)

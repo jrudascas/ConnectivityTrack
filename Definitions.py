@@ -1,10 +1,9 @@
-__author__ = 'brain'
-
+__author__ = 'Jrudascas'
 
 class Definitions(object):
     tempPath        = '/home/jrudascas/Desktop/DWITest/Temporal/'
-    pathIN          = '/home/jrudascas/Desktop/DWITest/Datos_Entrada/'
-    pathOUT         = '/home/jrudascas/Desktop/DWITest/Datos_Salida/'
+   # pathIN          = '/home/jrudascas/Desktop/DWITest/Datos_Entrada/'
+   # pathOUT         = '/home/jrudascas/Desktop/DWITest/Datos_Salida/'
     standard        = '/home/jrudascas/Desktop/DWITest/Additionals/Standards/MNI152_T1_2mm_brain.nii.gz'
     atlas           = '/home/jrudascas/Desktop/DWITest/Additionals/Atlas/JHU-ICBM-labels-2mm.nii.gz'
                      #'/home/jrudascas/Desktop/DWITest/Additionals/Atlas/2mm/AAN_2mm.nii'

@@ -1,4 +1,4 @@
-__author__ = 'brain'
+__author__ = 'Jrudascas'
 
 import os
 from os import listdir

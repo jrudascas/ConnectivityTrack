@@ -1,3 +1,5 @@
+__author__ = 'Jrudascas'
+
 import numpy as np
 from dipy.align.metrics import CCMetric, EMMetric, SSDMetric
 from dipy.align.imwarp import SymmetricDiffeomorphicRegistration

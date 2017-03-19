@@ -1,4 +1,5 @@
-import numpy as np
+__author__ = 'Jrudascas'
+
 import nibabel as nib
 from dipy.io import read_bvals_bvecs
 import os
@@ -11,136 +12,152 @@ import ProcessData as p
 import Utils as utils
 from dipy.core.geometry import vector_norm
 
-print('...................................')
-print('    Inicia procesamiento de DTI    ')
-print('...................................')
-print(' ')
+def Main (pathIn, pathOut):
+    import numpy as np
+    print('...................................')
+    print('    Inicia procesamiento de DTI    ')
+    print('...................................')
+    print(' ')
 
-lstFiles = []
-lstDir = os.walk(definitions.Definitions.pathIN)
+    lstDir = os.walk(pathIn)
 
-fdwiName1 = ""
-fdwiName2 = ""
-ext1 = ""
-ext2 = ""
+    fdwiName1 = ""
+    fdwiName2 = ""
+    ext1 = ""
+    ext2 = ""
 
-for root, dirs, files in lstDir:
-    for fichero in files:
-        (nombreFichero, extension) = os.path.splitext(fichero)
-        if((extension == ".nii") | (extension == ".gz")):
+    for root, dirs, files in lstDir:
+        for fichero in files:
+            (nombreFichero, extension) = os.path.splitext(fichero)
+            if((extension == ".nii") | (extension == ".gz")):
 
-            if ((fdwiName1 == "")):
-                ext1 = extension
-                fdwiName1 = nombreFichero
-            elif (fdwiName2 == ""):
-                fdwiName2 = nombreFichero
-                ext2 = extension
-        if(extension == ".bvec"):
-            fbvec = definitions.Definitions.pathIN + nombreFichero + extension
-            refName = nombreFichero
-        if(extension == ".bval"):
-            fbval = definitions.Definitions.pathIN + nombreFichero + extension
-            refName = nombreFichero
+                if ((fdwiName1 == "")):
+                    ext1 = extension
+                    fdwiName1 = nombreFichero
+                elif (fdwiName2 == ""):
+                    fdwiName2 = nombreFichero
+                    ext2 = extension
+            if(extension == ".bvec"):
+                fbvec = pathIn + nombreFichero + extension
+                refName = nombreFichero
+            if(extension == ".bval"):
+                fbval = pathIn + nombreFichero + extension
+                refName = nombreFichero
 
-if (refName != fdwiName1):
-    fdwiT1 = definitions.Definitions.pathIN + fdwiName1 + ext1
-    fdwi   = definitions.Definitions.pathIN + fdwiName2 + ext2
-else:
-    fdwiT1 = definitions.Definitions.pathIN + fdwiName2 + ext2
-    fdwi   = definitions.Definitions.pathIN + fdwiName1 + ext1
+    if (refName != fdwiName1):
+        fdwiT1 = pathIn + fdwiName1 + ext1
+        fdwi   = pathIn + fdwiName2 + ext2
+    else:
+        fdwiT1 = pathIn + fdwiName2 + ext2
+        fdwi   = pathIn + fdwiName1 + ext1
 
-print('Se procesaran los siguientes arhivos: ')
-print(nombreFichero)
+    print('Se procesaran los siguientes arhivos: ')
+    print(fdwi)
+    print(fdwiT1)
 
-print(' ')
-print('...................................')
-print('          Preprocesamiento         ')
-print('...................................')
-print(' ')
+    print(' ')
+    print('...................................')
+    print('          Preprocesamiento         ')
+    print('...................................')
+    print(' ')
 
-img = nib.load(fdwi)
-data = img.get_data()
-affine = img.get_affine()
-bvals, bvecs = read_bvals_bvecs(fbval, fbvec)
-dwi_mask = bvals > 0
-bvecs = np.where(np.isnan(bvecs), 0, bvecs)
-bvecs_close_to_1 = abs(vector_norm(bvecs) - 1) <= 0.1
+    img = nib.load(fdwi)
+    data = img.get_data()
+    affine = img.get_affine()
+    bvals, bvecs = read_bvals_bvecs(fbval, fbvec)
+    dwi_mask = bvals > 0
+    bvecs = np.where(np.isnan(bvecs), 0, bvecs)
+    bvecs_close_to_1 = abs(vector_norm(bvecs) - 1) <= 0.1
 
-bvecs_close_to_1[..., 0] = True
-bvals = bvals[bvecs_close_to_1]
-bvecs = bvecs[bvecs_close_to_1]
-data = data[..., bvecs_close_to_1]
+    bvecs_close_to_1[..., 0] = True
+    bvals = bvals[bvecs_close_to_1]
+    bvecs = bvecs[bvecs_close_to_1]
+    data = data[..., bvecs_close_to_1]
 
-if not np.all(bvecs_close_to_1) == True:
-    np.savetxt(fbval, bvals, delimiter='    ', fmt='%s')
-    np.savetxt(fbvec, bvecs, delimiter='    ', fmt='%s')
-    nib.save(nib.Nifti1Image(data, affine), fdwi)
+    if not np.all(bvecs_close_to_1) == True:
+        np.savetxt(fbval, bvals, delimiter='    ', fmt='%s')
+        np.savetxt(fbvec, bvecs, delimiter='    ', fmt='%s')
+        nib.save(nib.Nifti1Image(data, affine), fdwi)
 
-if os.path.exists(definitions.Definitions.tempPath):
-    ut.delete_Files(definitions.Definitions.tempPath)
-    os.removedirs(definitions.Definitions.tempPath)
+    if os.path.exists(definitions.Definitions.tempPath):
+        ut.delete_Files(definitions.Definitions.tempPath)
+        os.removedirs(definitions.Definitions.tempPath)
 
-os.mkdir(definitions.Definitions.tempPath)
+    os.mkdir(definitions.Definitions.tempPath)
 
-if (fdwiName2 != ""):
-    print('-> Preprocesado image estructural')
-    fsl.BET(fdwiT1, definitions.Definitions.pathOUT + refName + '_Structural_BET.nii', '-f .4')
+    if (fdwiName2 != ""):
+        print('-> Preprocesado image estructural')
+        fsl.BET(fdwiT1, pathOut + refName + '_Structural_BET.nii', '-f .4')
 
-    if not(os.path.exists(definitions.Definitions.pathOUT + refName + '_Structural_Normalized.nii')):
-       warped_Structural, MNI_T2_affine, mapping_Structural = p.registrationtoNMI(definitions.Definitions.pathOUT + refName + '_Structural_BET.nii.gz', definitions.Definitions.pathOUT)
-       nib.save(nib.Nifti1Image(warped_Structural.astype(np.float32), MNI_T2_affine), definitions.Definitions.pathOUT + refName + '_Structural_Normalized.nii')
+        if not(os.path.exists(pathOut + refName + '_Structural_Normalized.nii')):
+           warped_Structural, MNI_T2_affine, mapping_Structural = p.registrationtoNMI(pathOut + refName + '_Structural_BET.nii.gz', pathOut)
+           nib.save(nib.Nifti1Image(warped_Structural.astype(np.float32), MNI_T2_affine), pathOut + refName + '_Structural_Normalized.nii')
 
-listProcess = preprocessing.Preprocessing_DWI(fdwi, definitions.Definitions.pathOUT, 0)
+    listProcess = preprocessing.Preprocessing_DWI(fdwi, pathOut, 0)
 
-mask = nib.load(listProcess[listProcess.__len__() - 1])
-mask_data = (mask.get_data() == 0)
+    mask = nib.load(listProcess[listProcess.__len__() - 1])
+    mask_data = (mask.get_data() == 0)
 
-dwiPreprocessed = nib.load(listProcess[listProcess.__len__() - 3])
-dwiPreprocessed_data = dwiPreprocessed.get_data()
+    dwiPreprocessed = nib.load(listProcess[listProcess.__len__() - 3])
+    dwiPreprocessed_data = dwiPreprocessed.get_data()
 
-dwiPreprocessed_data[mask_data,:] = 0
+    dwiPreprocessed_data[mask_data,:] = 0
 
-ni_b0 = nib.Nifti1Image(dwiPreprocessed_data, dwiPreprocessed.get_affine())
-refNameOnly = utils.extractFileName(listProcess[listProcess.__len__() - 3])
-filename = definitions.Definitions.pathOUT + refNameOnly + '_DWImask.nii.gz'
-fggg = filename
-ni_b0.to_filename(filename)
+    ni_b0 = nib.Nifti1Image(dwiPreprocessed_data, dwiPreprocessed.get_affine())
+    refNameOnly = utils.extractFileName(listProcess[listProcess.__len__() - 3])
+    filename = pathOut + refNameOnly + '_DWImask.nii.gz'
+    fggg = filename
+    ni_b0.to_filename(filename)
 
-warped, MNI_T2_affine, mapping = p.registrationDWItoNMI(filename, fbvec, fbval, definitions.Definitions.pathOUT)
+    warped, MNI_T2_affine, mapping = p.registrationDWItoNMI(filename, fbvec, fbval, pathOut)
 
-print(' ')
-print('...................................')
-print('           Procesamiento           ')
-print('...................................')
-print(' ')
-print('--> Calculando el modelo por tensor')
+    print(' ')
+    print('...................................')
+    print('           Procesamiento           ')
+    print('...................................')
+    print(' ')
+    print('--> Calculando el modelo por tensor')
 
-streamlines, streamlines_affine = processing.Processing_DWI(listProcess[listProcess.__len__() - 3], listProcess[listProcess.__len__() - 1], definitions.Definitions.pathOUT, fbval, fbvec, mapping, MNI_T2_affine)
+    streamlines, streamlines_affine = processing.Processing_DWI(listProcess[listProcess.__len__() - 3], listProcess[listProcess.__len__() - 1], pathOut, fbval, fbvec, mapping, MNI_T2_affine)
 
-filename = definitions.Definitions.pathOUT + utils.extractFileName(listProcess[listProcess.__len__() - 2]) + '_MedianOtsu_b0.nii.gz'
+    filename = pathOut + utils.extractFileName(listProcess[listProcess.__len__() - 2]) + '_MedianOtsu_b0.nii.gz'
 
-p.registerAffine_atlas(definitions.Definitions.atlas, definitions.Definitions.standard, definitions.Definitions.pathOUT, definitions.Definitions.tempPath, dwiPreprocessed.get_affine(), filename)
+    p.registerAffine_atlas(definitions.Definitions.atlas, definitions.Definitions.standard, pathOut, definitions.Definitions.tempPath, dwiPreprocessed.get_affine(), filename)
 
-warped_atlas = p.register_atlas(definitions.Definitions.atlas, definitions.Definitions.pathOUT, dwiPreprocessed.get_affine(), mapping)
+    warped_atlas = p.register_atlas(definitions.Definitions.atlas, pathOut, dwiPreprocessed.get_affine(), mapping)
 
-nib.save(nib.Nifti1Image(warped_atlas, dwiPreprocessed.get_affine()), definitions.Definitions.pathOUT + refNameOnly + '_ATLAS' + definitions.Definitions.extension)
+    nib.save(nib.Nifti1Image(warped_atlas, dwiPreprocessed.get_affine()), pathOut + refNameOnly + '_ATLAS' + definitions.Definitions.extension)
 
-import numpy as np
-import time
+    import numpy as np
+    import time
 
-print("Building connectivity matrix " + time.strftime("%H:%M:%S") )
+    print("Building connectivity matrix " + time.strftime("%H:%M:%S") )
 
-M = p.connectivity_matrix2(streamlines, warped_atlas, affine=streamlines_affine)
+    #tensor_streamlines = [st for st in streamlines]
+    #tensor_streamlines_trk = ((sl, None, None) for sl in tensor_streamlines)
 
-print("End Building connectivity matrix " + time.strftime("%H:%M:%S") )
+    """"
+    new_vox_sz = (definitions.Definitions.vox_sz, definitions.Definitions.vox_sz, definitions.Definitions.vox_sz)
+    hdr = nib.trackvis.empty_header()
+    hdr['voxel_size'] = new_vox_sz
+    hdr['voxel_order'] = 'LAS'
+    hdr['dim'] = mask_data.shape
 
+    tensor_streamlines_trk = ((sl, None, None) for sl in streamlines)
+    ten_sl_fname = pathOut + '_TractografiaAuxiliar.trk'
+    nib.trackvis.write(ten_sl_fname, tensor_streamlines_trk, hdr, points_space='voxel')
+    """""
 
-M[:1, :] = 0
-M[:, :1] = 0
+    M = p.connectivity_matrix2(streamlines, warped_atlas, affine=streamlines_affine, shape=mask_data.shape)
 
-np.savetxt(definitions.Definitions.pathOUT + 'connectivity.out', M, delimiter=' ', fmt='%s')
+    print("End Building connectivity matrix " + time.strftime("%H:%M:%S") )
 
-print(' ')
-print('...................................')
-print('  Proceso Finalizado Exitosamente  ')
-print('...................................')
+    M[:1, :] = 0
+    M[:, :1] = 0
+
+    np.savetxt(pathOut + 'connectivity.out', M, delimiter=' ', fmt='%s')
+
+    print(' ')
+    print('...................................')
+    print('  Proceso Finalizado Exitosamente  ')
+    print('...................................')

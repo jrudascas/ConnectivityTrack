@@ -1,6 +1,6 @@
-import os
+__author__ = 'Jrudascas'
 
-__author__ = 'JRudas'
+import os
 
 def FLIRT (file_in, file_out, ref, omat):
     command = 'flirt -in ' + file_in + ' -out ' + file_out + ' -ref ' + ref + ' -omat ' + omat + ' -dof 6'
