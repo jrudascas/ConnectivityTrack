@@ -1,10 +1,10 @@
 __author__ = 'Jrudascas'
 
 import os
-import Main as main
-import Utils as utils
-pathInStudy = "/home/jrudascas/Desktop/TestMichael/In/"
-pathOutStudy = "/home/jrudascas/Desktop/TestMichael/Out/"
+import main as main
+import utils as utils3
+pathInStudy = "/home/jrudascas/Desktop/MONTOYA/In/"
+pathOutStudy = "/home/jrudascas/Desktop/MONTOYA/Out/"
 
 lstFiles = []
 lstDir = os.walk(pathInStudy)

@@ -24,6 +24,7 @@ def BET (file_in, file_out, parameters):
 
 def EDDYCORRECT (file_in, file_out, referenceNo):
     command = 'eddy_correct ' + file_in + ' ' + file_out + ' ' + referenceNo
+    print(command)
     os.system(command)
 
 def hexTodec (file, file_out):

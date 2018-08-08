@@ -1,6 +1,6 @@
 __author__ = 'Jrudascas'
 
-import Main as main
+import main as main
 
 pathIn          = '/home/jrudascas/Desktop/DWITest/Datos_Entrada/'
 pathOut         = '/home/jrudascas/Desktop/DWITest/Datos_Salida/'
