@@ -347,7 +347,7 @@ def to_register_dwi_to_mni(path_in, path_out, path_bvec, path_bval):
             directionWarped[:, :, :, gradientDirection] = mapping.transform(
                 data_DWI[:, :, :, gradientDirection].astype(int), interpolation='nearest')
 
-        nib.save(nib.Nifti1Image(directionWarped, MNI_T2_affine), path_out + 'dwiNormalized' + d.extension)
+        nib.save(nib.Nifti1Image(directionWarped, MNI_T2_affine), path_out + ref_name + '_normalized' + d.extension)
 
     return path_out + ref_name + '_normalized' + d.extension
 

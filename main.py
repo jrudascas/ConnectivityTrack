@@ -37,7 +37,7 @@ def Main (path_in, path_out):
 
     print(' ')
     print('...................................')
-    print('       runnin Pre-processing       ')
+    print('       running Pre-processing      ')
     print('...................................')
     print(' ')
 
