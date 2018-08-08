@@ -25,10 +25,8 @@ def preprocessing(path_dwi_input, path_out, path_bvec, path_bval):
     process['pathDWIMasked'] = maskedVolume
     process['pathBinaryMask'] = binaryMask
 
-    warped_dwi, MNI_T2_affine, mapping_dwi, path_normalized = p.to_register_dwi_to_mni(process['pathDWIMasked'], path_out,
-                                                                                       path_bvec, path_bval)
+    path_normalized = p.to_register_dwi_to_mni(process['pathDWIMasked'], path_out, path_bvec, path_bval)
 
     process['pathNormalized'] = path_normalized
-    process['mappingToNMI'] = mapping_dwi
 
     return process

@@ -20,6 +20,7 @@ idMedianOtsu = '_MedianOtsu'
 id_bet = '_BET'
 idEvecs = '_DTIEvecs'
 idEvals = '_DTIEvals'
+separador = '    - '
 vox_sz = 1.0
 threshold = 100
 median_radius = 4

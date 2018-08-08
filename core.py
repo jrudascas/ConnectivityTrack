@@ -165,15 +165,15 @@ def medianOtsu(file_in, outPath, median_radius=4, num_pass=4):
 
 def to_estimate_dti(file_in, file_inMask, outPath, fbval, fbvec):
     t = time()
-    print('building DTI Model...')
+    print(d.separador + 'building DTI Model...')
 
-    refNameOnly = utils.extractFileName(file_in)
+    ref_name = utils.extractFileName(file_in)
 
-    if (not (os.path.exists(outPath + refNameOnly + d.idEvecs + d.extension))) | (
-            not (os.path.exists(outPath + refNameOnly + d.idEvals + d.extension))):
+    if (not (os.path.exists(outPath + ref_name + d.idEvecs + d.extension))) | (
+            not (os.path.exists(outPath + ref_name + d.idEvals + d.extension))):
         try:
-            os.remove(outPath + refNameOnly + d.idEvecs + d.extension)
-            os.remove(outPath + refNameOnly + d.idEvals + d.extension)
+            os.remove(outPath + ref_name + d.idEvecs + d.extension)
+            os.remove(outPath + ref_name + d.idEvals + d.extension)
         except:
             print("Unexpected error:", sys.exc_info()[0])
 
@@ -185,16 +185,17 @@ def to_estimate_dti(file_in, file_inMask, outPath, fbval, fbvec):
         bvals, bvecs = read_bvals_bvecs(fbval, fbvec)
         gtab = gradient_table(bvals, bvecs)
 
-        tenmodel = dti.TensorModel(gtab)
-        tenfit = tenmodel.fit(data, mask)
+        tensor_model = dti.TensorModel(gtab)
+        tensor_fitted = tensor_model.fit(data, mask)
 
-        evecs_img = nib.Nifti1Image(tenfit.evecs.astype(np.float32), img.affine)
-        evals_img = nib.Nifti1Image(tenfit.evals.astype(np.float32), img.affine)
-        nib.save(evecs_img, outPath + refNameOnly + d.idEvecs + d.extension)
-        nib.save(evals_img, outPath + refNameOnly + d.idEvals + d.extension)
+        nib.save(nib.Nifti1Image(tensor_fitted.evecs.astype(np.float32), img.affine),
+                 outPath + ref_name + d.idEvecs + d.extension)
+        nib.save(nib.Nifti1Image(tensor_fitted.evals.astype(np.float32), img.affine),
+                 outPath + ref_name + d.idEvals + d.extension)
 
     print("Total time: ", time() - t)
-    return outPath + refNameOnly + d.idEvecs + d.extension, outPath + refNameOnly + d.idEvals + d.extension
+
+    return outPath + ref_name + d.idEvecs + d.extension, outPath + ref_name + d.idEvals + d.extension
 
 
 def to_estimate_dti_maps(path_dwi_input, path_output, file_tensor_fitevecs, file_tensor_fitevals):
@@ -210,40 +211,40 @@ def to_estimate_dti_maps(path_dwi_input, path_output, file_tensor_fitevecs, file
 
     affine = img_tensorFitevecs.affine
 
-    print('--> Calculando el mapa de anisotropia fraccional')
+    print(d.separador + 'Calculando el mapa de anisotropia fraccional')
     FA = fractional_anisotropy(evals)
     FA[np.isnan(FA)] = 0
 
-    print('--> Calculando el mapa de anisotropia fraccional RGB')
+    print(d.separador + 'Calculando el mapa de anisotropia fraccional RGB')
     FA2 = np.clip(FA, 0, 1)
     RGB = color_fa(FA2, evecs)
 
-    print('--> Calculando el mapa de difusividad media')
+    print(d.separador + 'Calculando el mapa de difusividad media')
     MD = dti.mean_diffusivity(evals)
 
-    print('--> Calculando el mapa de difusividad axial')
+    print(d.separador + 'Calculando el mapa de difusividad axial')
     AD = dti.axial_diffusivity(evals)
 
-    print('--> Calculando el mapa de difusividad radial')
+    print(d.separador + 'Calculando el mapa de difusividad radial')
     RD = dti.radial_diffusivity(evals)
 
-    print('--> Guardando el mapa de FA')
+    print(d.separador + 'Guardando el mapa de FA')
     nib.save(nib.Nifti1Image(FA.astype(np.float32), affine), path_output + ref_name_only + '_FA' + d.extension)
 
-    print('--> Guardando el mapa de FA a Color')
+    print(d.separador + 'Guardando el mapa de FA a Color')
     nib.save(nib.Nifti1Image(np.array(255 * RGB, 'uint8'), affine),
              path_output + ref_name_only + '_FA_RGB' + d.extension)
 
-    print('--> Guardando el mapa de difusion media')
+    print(d.separador + 'Guardando el mapa de difusion media')
     nib.save(nib.Nifti1Image(MD.astype(np.float32), affine), path_output + ref_name_only + '_MD' + d.extension)
 
-    print('--> Guardando el mapa de difusividad axial')
+    print(d.separador + 'Guardando el mapa de difusividad axial')
     nib.save(nib.Nifti1Image(AD.astype(np.float32), affine), path_output + ref_name_only + '_AD' + d.extension)
 
-    print('--> Guardando el mapa de difusividad radial')
+    print(d.separador + 'Guardando el mapa de difusividad radial')
     nib.save(nib.Nifti1Image(RD.astype(np.float32), affine), path_output + ref_name_only + '_RD' + d.extension)
 
-    print('--> Guardando la Tractografia')
+    print(d.separador + 'Guardando la Tractografia')
 
     sphere = get_sphere('symmetric724')
     peak_indices = quantize_evecs(evecs, sphere.vertices)
@@ -305,45 +306,50 @@ def to_generate_tractography(path_dwi_input, path_binary_mask, path_out, path_bv
 
 
 def to_register_dwi_to_mni(path_in, path_out, path_bvec, path_bval):
-    img_DWI = nib.load(path_in)
-    data_DWI = img_DWI.get_data()
-    affine_DWI = img_DWI.affine
+    ref_name = utils.extractFileName(path_in)
 
-    bvals, bvecs = read_bvals_bvecs(path_bval, path_bvec)
-    gtab = gradient_table(bvals, bvecs)
+    if not os.path.exists(path_out + ref_name + '_normalized' + d.extension):
 
-    b0 = data_DWI[..., gtab.b0s_mask]
+        img_DWI = nib.load(path_in)
+        data_DWI = img_DWI.get_data()
+        affine_DWI = img_DWI.affine
 
-    mean_b0 = np.mean(b0, -1)
+        bvals, bvecs = read_bvals_bvecs(path_bval, path_bvec)
+        gtab = gradient_table(bvals, bvecs)
 
-    mni_t2 = nib.load(d.standardT2)
-    mni_t2_data = mni_t2.get_data()
-    MNI_T2_affine = mni_t2.affine
+        b0 = data_DWI[..., gtab.b0s_mask]
 
-    directionWarped = np.zeros((mni_t2_data.shape[0], mni_t2_data.shape[1], mni_t2_data.shape[2], data_DWI.shape[-1]))
-    rangos = range(data_DWI.shape[-1])
+        mean_b0 = np.mean(b0, -1)
 
-    affine, starting_affine = tools.affine_registration(mean_b0, mni_t2_data, moving_grid2world=affine_DWI,
-                                                        static_grid2world=MNI_T2_affine)
+        mni_t2 = nib.load(d.standardT2)
+        mni_t2_data = mni_t2.get_data()
+        MNI_T2_affine = mni_t2.affine
 
-    warped_moving, mapping = tools.syn_registration(mean_b0, mni_t2_data,
-                                                    moving_grid2world=affine_DWI,
-                                                    static_grid2world=MNI_T2_affine,
-                                                    # step_length=0.1,
-                                                    # sigma_diff=2.0,
-                                                    metric='CC',
-                                                    dim=3, level_iters=[10, 10, 5],
-                                                    # prealign=affine.affine)
-                                                    prealign=starting_affine)
+        directionWarped = np.zeros(
+            (mni_t2_data.shape[0], mni_t2_data.shape[1], mni_t2_data.shape[2], data_DWI.shape[-1]))
+        rangos = range(data_DWI.shape[-1])
 
-    for gradientDirection in rangos:
-        # print(gradientDirection)
-        directionWarped[:, :, :, gradientDirection] = mapping.transform(
-            data_DWI[:, :, :, gradientDirection].astype(int), interpolation='nearest')
+        affine, starting_affine = tools.affine_registration(mean_b0, mni_t2_data, moving_grid2world=affine_DWI,
+                                                            static_grid2world=MNI_T2_affine)
 
-    nib.save(nib.Nifti1Image(directionWarped, MNI_T2_affine), path_out + 'dwiNormalized' + d.extension)
+        warped_moving, mapping = tools.syn_registration(mean_b0, mni_t2_data,
+                                                        moving_grid2world=affine_DWI,
+                                                        static_grid2world=MNI_T2_affine,
+                                                        # step_length=0.1,
+                                                        # sigma_diff=2.0,
+                                                        metric='CC',
+                                                        dim=3, level_iters=[10, 10, 5],
+                                                        # prealign=affine.affine)
+                                                        prealign=starting_affine)
 
-    return directionWarped, MNI_T2_affine, mapping, path_out + 'dwiNormalized' + d.extension
+        for gradientDirection in rangos:
+            # print(gradientDirection)
+            directionWarped[:, :, :, gradientDirection] = mapping.transform(
+                data_DWI[:, :, :, gradientDirection].astype(int), interpolation='nearest')
+
+        nib.save(nib.Nifti1Image(directionWarped, MNI_T2_affine), path_out + 'dwiNormalized' + d.extension)
+
+    return path_out + ref_name + '_normalized' + d.extension
 
 
 def to_register_t1_to_nmi(path_in, path_out):
