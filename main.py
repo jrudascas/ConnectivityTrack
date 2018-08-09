@@ -16,7 +16,7 @@ import utils as utils
 from dipy.core.geometry import vector_norm
 
 
-def run_main(path_in, path_out):
+def run_main(path_input, path_output):
     import numpy as np
     print('...................................')
     print('        Starting Processing        ')
@@ -26,19 +26,22 @@ def run_main(path_in, path_out):
     validExtentions = ['bvec', 'bval', 'nii', 'gz']
     files_found = {}
 
-    lstDir = os.walk(os.path.join(path_in, d.pre_diffusion_images))
+    print(path_input)
+    print(path_output)
+
+    lstDir = os.walk(os.path.join(path_input, d.pre_diffusion_images))
     for root, dirs, files in lstDir:
         for fichero in files:
             (file_name, extension) = os.path.splitext(fichero)
-            fullPath = path_in + file_name + extension
+            fullPath = path_input + file_name + extension
             if utils.to_validate_extention(fullPath, validExtentions):
                 files_found[utils.what_kind_neuroimage_is(fullPath)] = fullPath
 
-    lstDir = os.walk(os.path.join(path_in, d.pre_anatomica_images))
+    lstDir = os.walk(os.path.join(path_input, d.pre_anatomica_images))
     for root, dirs, files in lstDir:
         for fichero in files:
             (file_name, extension) = os.path.splitext(fichero)
-            fullPath = path_in + file_name + extension
+            fullPath = path_input + file_name + extension
             if utils.to_validate_extention(fullPath, validExtentions):
                 files_found[utils.what_kind_neuroimage_is(fullPath)] = fullPath
 
@@ -82,12 +85,12 @@ def run_main(path_in, path_out):
         print(' ')
         refName = utils.to_extract_filename(files_found['t1'])
 
-        if not (os.path.exists(path_out + refName + '_BET.nii')):
-            fsl.bet(files_found['t1'], path_out + refName + '_BET.nii', '-f .4')
+        if not (os.path.exists(path_output + refName + '_BET.nii')):
+            fsl.bet(files_found['t1'], path_output + refName + '_BET.nii', '-f .4')
 
-        if not(os.path.exists(path_out + refName + '_BET_normalized.nii')):
-           warped_t1, MNI_T2_affine, mapping_t1 = p.registrationtoNMI(path_out + refName + '_BET.nii.gz', path_out)
-           nib.save(nib.Nifti1Image(warped_t1.astype(np.float32), MNI_T2_affine), path_out + refName + '_BET_normalized.nii')
+        if not(os.path.exists(path_output + refName + '_BET_normalized.nii')):
+           warped_t1, MNI_T2_affine, mapping_t1 = p.registrationtoNMI(path_output + refName + '_BET.nii.gz', path_output)
+           nib.save(nib.Nifti1Image(warped_t1.astype(np.float32), MNI_T2_affine), path_output + refName + '_BET_normalized.nii')
 
         print('-> Ending preprocessing of structural image')
         print(' ')
@@ -95,7 +98,7 @@ def run_main(path_in, path_out):
     print(' ')
     print('-> Starting preprocessing of diffution image')
 
-    preprocessing_output = pre.preprocessing(files_found['dwi'], path_out, files_found['bvec'], files_found['bval'])
+    preprocessing_output = pre.preprocessing(files_found['dwi'], path_output, files_found['bvec'], files_found['bval'])
 
     print('-> Ending preprocessing of diffution image')
 
@@ -105,7 +108,7 @@ def run_main(path_in, path_out):
     print('....................................')
     print(' ')
 
-    pro.processing(preprocessing_output['pathNormalized'], d.brain_mask_nmi, path_out, files_found['bval'], files_found['bvec'])
+    pro.processing(preprocessing_output['pathNormalized'], d.brain_mask_nmi, path_output, files_found['bval'], files_found['bvec'])
 
     #print("Building connectivity matrix " + time.strftime("%H:%M:%S") )
     #M = p.connectivity_matrix2(streamlines, warped_atlas, affine=streamlines_affine, shape=mask_data.shape)
