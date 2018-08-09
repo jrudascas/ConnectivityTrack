@@ -23,10 +23,18 @@ def run_main(path_in, path_out):
     print('...................................')
     print(' ')
 
-    lstDir = os.walk(path_in)
     validExtentions = ['bvec', 'bval', 'nii', 'gz']
     files_found = {}
 
+    lstDir = os.walk(os.path.join(path_in, d.pre_diffusion_images))
+    for root, dirs, files in lstDir:
+        for fichero in files:
+            (file_name, extension) = os.path.splitext(fichero)
+            fullPath = path_in + file_name + extension
+            if utils.to_validate_extention(fullPath, validExtentions):
+                files_found[utils.what_kind_neuroimage_is(fullPath)] = fullPath
+
+    lstDir = os.walk(os.path.join(path_in, d.pre_anatomica_images))
     for root, dirs, files in lstDir:
         for fichero in files:
             (file_name, extension) = os.path.splitext(fichero)

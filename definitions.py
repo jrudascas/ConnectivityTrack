@@ -2,7 +2,7 @@ __author__ = 'Jrudascas'
 
 import os
 
-path_input = '/home/runlab/data/SanJose/subject5/'
+path_input = '/home/runlab/data/SanJose/'
 path_output = '/home/runlab/data/results/SanJose/'
 path_temporal = '/home/runlab/data/results/Temporal/'
 
@@ -18,6 +18,10 @@ brain_mask_nmi = os.path.join(os.environ['FSLDIR'], 'data/standard/MNI152_T1_1mm
 
 default_b0_ref = 0
 extension = '.nii.gz'
+pre_diffusion_images = 'diffus/'
+pre_functional_images = 'func/'
+pre_anatomica_images = 'anat/'
+
 id_eddy_correct = '_EddyCorrect'
 id_reslice = '_Reslice'
 id_non_local_mean = '_NonLocalMean'
