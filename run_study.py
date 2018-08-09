@@ -13,7 +13,8 @@ lstDir = os.walk(d.path_input)
 for root, dirs, files in lstDir:
     for dir in dirs:
 
-        if not (os.path.exists(d.path_output + os.sep + dir)):
-            os.mkdir(d.path_output + os.sep + dir)
-        print("Finding into " + d.path_input + os.sep + dir + os.sep)
-        m.run_main(d.path_input + os.sep + dir + os.sep, d.path_output + os.sep + dir + os.sep)
+        if not (os.path.exists(os.path.join(d.path_output, dir))):
+            os.mkdir(os.path.join(d.path_output, dir))
+
+        print(dir)
+        m.run_main(os.path.join(d.path_inputput, dir), os.path.join(d.path_output, dir))

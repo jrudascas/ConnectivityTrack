@@ -22,7 +22,7 @@ from dipy.segment.mask import median_otsu
 import definitions as d
 import tools as tools
 import scipy.ndimage as ndim
-from dipy.io.trackvis import save_trk
+from dipy.io.streamline import save_trk
 from dipy.denoise.noise_estimate import estimate_sigma
 from time import time
 
@@ -253,15 +253,15 @@ def to_generate_tractography(path_dwi_input, path_binary_mask, path_out, path_bv
 
         classifier = ThresholdTissueClassifier(csa_peaks.gfa, .2)
 
-        seeds = utils.seeds_from_mask(dwi_mask_data.astype(bool), density=[3, 3, 3], affine=dwi_affine)
+        seeds = utils.seeds_from_mask(dwi_mask_data.astype(bool), density=[1, 1, 1], affine=dwi_affine)
 
-        streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=2)
+        streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=3)
 
-        streamlines = [s for s in streamlines if s.shape[0] > 10]
+        streamlines = [s for s in streamlines if s.shape[0] > 30]
 
         streamlines = list(streamlines)
 
-        save_trk(path_out + '_tractography_CsaOdf' + '.trk', streamlines, dwi_affine, dwi_data.shape)
+        save_trk(path_out + '_tractography_CsaOdf' + '.trk', streamlines, affine=dwi_affine, shape=dwi_data.shape)
 
     print('    - Ending reconstruction of Tractography...')
 
@@ -544,8 +544,6 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
             else:
                 aux = np.zeros(temp.shape).astype(bool)
                 aux[temp != elementROI] = True
-                print(roi.shape)
-                print(aux.shape)
                 roi = roi | aux
 
         nib.save(nib.Nifti1Image(roi.astype(np.float32), dwi_affine),
@@ -568,13 +566,13 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         seeds = utils.seeds_from_mask(roi.astype(bool), density=[1, 1, 1], affine=dwi_affine)
 
-        streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=1)
+        streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=3)
 
-        streamlines = [s for s in streamlines if s.shape[0] > 10]
+        streamlines = [s for s in streamlines if s.shape[0] > 30]
 
         streamlines = list(streamlines)
 
-        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, dwi_affine, roi.shape)
+        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=dwi_affine, shape=roi.shape)
 
         print('Finished ROI reconstruction: ' + str(time() - t))
 
@@ -596,7 +594,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
             if sum(labelsROI) > 0:
                 bunddle.append(sl_Aux)
 
-        save_trk(path_output + 'bundleROI_to_TARGET_rule_' + str(ruleNumber) + '.trk', bunddle, dwi_affine, roi.shape)
+        save_trk(path_output + 'bundleROI_to_TARGET_rule_' + str(ruleNumber) + '.trk', bunddle, affine=dwi_affine, shape=roi.shape)
 
         print('Finished TARGET filtering: ' + str(time() - t))
 
@@ -629,7 +627,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
                     bunddleFiltered.append(b_Aux)
 
             save_trk(path_output + 'bundleROI_to_TARGET_Filtered_rule_' + str(ruleNumber) + '.trk', bunddleFiltered,
-                     dwi_affine, roi.shape)
+                     affine=dwi_affine, shape=roi.shape)
 
             print('Finished exclusive filtering: ' + str(time() - t))
             del roiFiltered
@@ -655,54 +653,6 @@ def toGenerateBunddle(roi1, roi2, data, gtab, affine):
     masked = nib.load(volueMaskPath)
     dataMasked = masked.get_data()
 
-    maskI = dataMasked
-
-    # tensor_model = dti.TensorModel(gtab)
-    # tenfit = tensor_model.fit(data, mask=maskI)
-
-    # FA = fractional_anisotropy(tenfit.evals)
-    # classifier = ThresholdTissueClassifier(FA, .2)
-
-    '''
-    print('Starting the ConstrainedSphericalDeconvModel')
-    t = time()
-    csd_model = ConstrainedSphericalDeconvModel(gtab, None, sh_order=6)
-    csd_fit = csd_model.fit(data, mask=maskI)
-
-    detmax_dg = DeterministicMaximumDirectionGetter.from_shcoeff(csd_fit.shm_coeff,
-                                                                 max_angle=30.,
-                                                                 sphere=default_sphere)
-
-    streamlines1 = LocalTracking(detmax_dg, classifier, seeds, affine, step_size=3)
-
-    save_trk("/home/jrudascas/Desktop/DWITest/Datos_Salida/ConstrainedSphericalDeconvModel.trk", streamlines1, affine, roi1.shape)
-
-    print(time() - t)
-
-    
-    print('Starting the CsaOdfModel')
-    t = time()
-
-    print('Initialization the seeds')
-    seeds = utils.seeds_from_mask(maskI, density=[2, 2, 2], affine=affine)
-
-    csa_model = CsaOdfModel(gtab, sh_order=6)
-    csa_peaks = peaks_from_model(csa_model, data, default_sphere, sh_order=6,
-                                 relative_peak_threshold=.8,
-                                 min_separation_angle=45, mask=maskI)
-
-    classifier = ThresholdTissueClassifier(csa_peaks.gfa, .25)
-
-    streamlines = LocalTracking(csa_peaks, classifier, seeds, affine, step_size=2)
-
-    streamlines = [s for s in streamlines if s.shape[0]>80]
-
-    streamlines = list(streamlines)
-
-    save_trk("/home/jrudascas/Desktop/DWITest/Datos_Salida/CsaOdfModel.trk", streamlines, affine, roi1.shape)
-
-    print(time() - t)
-'''
     print('Starting the CsaOdfModel ROI')
 
     t = time()
@@ -745,13 +695,9 @@ def toGenerateBunddle(roi1, roi2, data, gtab, affine):
         if sum(labelsROI) > 0:
             bunddle.append(sl_Aux)
 
-        save_trk('/home/jrudascas/Desktop/DWITest/Datos_Salida/BundleROI_to_ROI.trk', bunddle, affine, roi2.shape)
+        save_trk('/home/jrudascas/Desktop/DWITest/Datos_Salida/BundleROI_to_ROI.trk', bunddle, affine=affine, shape=roi2.shape)
 
     print('ROI to ROI: ' + time() - t)
-
-
-# def toEstimateBunddle(streamlines, atlas, dict):
-#    for bunddle in dict:
 
 def connectivity_matrix(streamlines, label_volume, voxel_size=None,
                         affine=None, symmetric=True, return_mapping=False,
