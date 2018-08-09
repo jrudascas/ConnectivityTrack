@@ -16,4 +16,4 @@ for subject in sorted(os.listdir(d.path_input)):
             os.mkdir(os.path.join(d.path_output, subject))
 
         print(subject)
-        m.run_main(os.path.join(d.path_input, subject), os.path.join(d.path_output, subject))
+        m.run_main(os.path.join(d.path_input, subject, os.sep), os.path.join(d.path_output, subject, os.sep))
