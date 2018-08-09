@@ -532,7 +532,7 @@ def connectivity_matrix2(streamlines, label_volume, affine, shape, voxel_size=No
     return matriz.astype(int)
 
 
-def to_generate_bunddle(path_dwi_input, path_binary_mask, path_bval, path_bvec, rules, atlas_dict):
+def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval, path_bvec, rules, atlas_dict):
     from dipy.reconst.shm import CsaOdfModel
     from dipy.data import default_sphere
     from dipy.direction import peaks_from_model
@@ -540,9 +540,7 @@ def to_generate_bunddle(path_dwi_input, path_binary_mask, path_bval, path_bvec, 
     from dipy.tracking import utils
     from dipy.tracking.local import ThresholdTissueClassifier
 
-    print('Starting the model')
-
-    t = time()
+    print(d.separador + 'starting of model')
 
     dwi_img = nib.load(path_dwi_input)
     dwi_data = dwi_img.get_data()
@@ -560,11 +558,16 @@ def to_generate_bunddle(path_dwi_input, path_binary_mask, path_bval, path_bvec, 
                                  relative_peak_threshold=.8,
                                  min_separation_angle=25, mask=dwi_mask_data.astype(bool))
 
+    print(d.separador + 'ending of model')
+
+    print(d.separador + 'starting of classifier')
+
     classifier = ThresholdTissueClassifier(csa_peaks.gfa, .2)
 
-    print('Finished the model: ' + str(time() - t))
+    print(d.separador + 'ending of classifier')
 
     ruleNumber = 1
+
     for rule in rules:
 
         t = time()
@@ -572,22 +575,31 @@ def to_generate_bunddle(path_dwi_input, path_binary_mask, path_bval, path_bvec, 
         print('Starting ROI reconstruction')
 
         for elementROI in rule[0][1]:
+            temp = nib.load(atlas_dict[rule[0][0]]).get_data()
             if not ('roi' in locals()):
-                roi = nib.load(atlas_dict[rule[0][0]][elementROI - 1]).get_data().astype(bool)
+                roi = np.zeros(temp.shape)
+                roi[temp != elementROI] = True
+                #roi = nib.load(atlas_dict[rule[0][0]][elementROI - 1]).get_data().astype(bool)
             else:
-                roi = roi | nib.load(atlas_dict[rule[0][0]][elementROI - 1]).get_data().astype(bool)
+                aux = np.zeros(temp.shape)
+                aux[temp != elementROI] = True
+                roi = roi | aux
 
-        nib.save(nib.Nifti1Image(roi.astype(np.float32), dwi_affine),
-                 '/home/jrudascas/Desktop/DWITest/Datos_Salida/roi_rule_' + str(ruleNumber) + '.nii')
+        nib.save(nib.Nifti1Image(roi.astype(np.float32), dwi_affine), path_output + 'roi_rule_' + str(ruleNumber) + '.nii')
 
         for elementROI in rule[1][1]:
+            temp = nib.load(atlas_dict[rule[1][0]]).get_data()
             if not ('target' in locals()):
-                target = nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
+                target = np.zeros(temp.shape)
+                target[temp != elementROI] = True
+                #target = nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
             else:
-                target = target | nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
+                #target = target | nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
+                aux = np.zeros(temp.shape)
+                aux[temp != elementROI] = True
+                target = target | aux
 
-        nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine),
-                 '/home/jrudascas/Desktop/DWITest/Datos_Salida/target_rule_' + str(ruleNumber) + '.nii')
+        nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine), path_output + 'target_rule_' + str(ruleNumber) + '.nii')
 
         seeds = utils.seeds_from_mask(roi.astype(bool), density=[3, 3, 3], affine=dwi_affine)
 
@@ -597,8 +609,7 @@ def to_generate_bunddle(path_dwi_input, path_binary_mask, path_bval, path_bvec, 
 
         streamlines = list(streamlines)
 
-        save_trk('/home/jrudascas/Desktop/DWITest/Datos_Salida/BundleROI_rule_' + str(ruleNumber) + '.trk', streamlines,
-                 dwi_affine, roi.shape)
+        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, dwi_affine, roi.shape)
 
         print('Finished ROI reconstruction: ' + str(time() - t))
 
@@ -620,20 +631,26 @@ def to_generate_bunddle(path_dwi_input, path_binary_mask, path_bval, path_bvec, 
             if sum(labelsROI) > 0:
                 bunddle.append(sl_Aux)
 
-        save_trk('/home/jrudascas/Desktop/DWITest/Datos_Salida/BundleROI_to_TARGET_rule_' + str(ruleNumber) + '.trk',
-                 bunddle, dwi_affine, roi.shape)
+        save_trk(path_output + 'bundleROI_to_TARGET_rule_' + str(ruleNumber) + '.trk', bunddle, dwi_affine, roi.shape)
 
         print('Finished TARGET filtering: ' + str(time() - t))
 
-        if len(rule) == 3:  # If necessary other filtering (exclusition)
+        if len(rule) == 3:  # If is necessary other filtering (exclusition)
             print('Starting exclusive filtering')
             t = time()
 
             for elementROI in rule[2][1]:
+                temp = nib.load(atlas_dict[rule[2][0]]).get_data()
                 if not ('roiFiltered' in locals()):
-                    roiFiltered = nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
+                    roiFiltered = np.zeros(temp.shape)
+                    roiFiltered[temp != elementROI] = True
+                    #roiFiltered = nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
                 else:
-                    roiFiltered = roiFiltered | nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
+                    aux = np.zeros(temp.shape)
+                    aux[temp != elementROI] = True
+
+                    roiFiltered = roiFiltered | aux
+                    #roiFiltered = roiFiltered | nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
 
             bunddleFiltered = []
 
@@ -646,13 +663,10 @@ def to_generate_bunddle(path_dwi_input, path_binary_mask, path_bval, path_bvec, 
                 if sum(labelsROI) == 0:
                     bunddleFiltered.append(b_Aux)
 
-            save_trk('/home/jrudascas/Desktop/DWITest/Datos_Salida/BundleROI_to_TARGET_Filtered_rule_' + str(
-                ruleNumber) + '.trk',
-                     bunddleFiltered, dwi_affine, roi.shape)
+            save_trk(path_output + 'bundleROI_to_TARGET_Filtered_rule_' + str(ruleNumber) + '.trk', bunddleFiltered, dwi_affine, roi.shape)
 
             print('Finished exclusive filtering: ' + str(time() - t))
             del roiFiltered
-
         del roi
         del target
 

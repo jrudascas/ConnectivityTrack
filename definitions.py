@@ -1,16 +1,22 @@
 __author__ = 'Jrudascas'
 
-path_temporal = '/home/jrudascas/Desktop/DWITest/Temporal/'
-# pathIN                 = '/home/jrudascas/Desktop/DWITest/Datos_Entrada/'
-# pathOUT                = '/home/jrudascas/Desktop/DWITest/Datos_Salida/'
-standardT2 = '/home/jrudascas/Desktop/DWITest/Additionals/Standards/MNI152_T2_1mm_brain.nii.gz'
-standardT1 = '/home/jrudascas/Desktop/DWITest/Additionals/Standards/MNI152_T1_1mm_brain.nii.gz'
-brain_mask_nmi = '/usr/share/fsl/data/standard/MNI152_T1_1mm_brain_mask.nii.gz'
-# atlas                  = '/home/jrudascas/Desktop/DWITest/Additionals/Atlas/JHU-ICBM-labels-2mm.nii.gz'
-# '/home/jrudascas/Desktop/DWITest/Additionals/Atlas/2mm/AAN_2mm.nii'
-# '/home/jrudascas/Desktop/DWITest/Additionals/Atlas/JHU-ICBM-labels-2mm.nii.gz'
-atlas = '/home/jrudascas/Desktop/DWITest/Additionals/Atlas/1mm/AAN_1mm.nii'
-# atlas                  = '/home/jrudascas/Desktop/DWITest/Additionals/Atlas/HarvardOxford-cort-maxprob-thr25-2mm.nii.gz'
+import os
+
+path_input = '/home/runlab/data/SanJose/subject5/'
+path_output = '/home/runlab/data/results/SanJose/'
+
+path_temporal = '/home/runlab/data/results/Temporal/'
+
+atlas = '/home/runlab/data/Atlas/1mm/AAN_1mm.nii'
+aanAtlas = '/home/runlab/data/Atlas/1mm/1mm/AAN.nii'
+morelAtlas = '/home/runlab/data/Atlas/1mm/ThalamicNucleiMorelAtlas.nii'
+harvardOxfordCortAtlas = '/home/runlab/data/Atlas/1mm/HarvardOxfordCort.nii'
+hypothalamusAtlas = '/home/runlab/data/Atlas/1mm/Hypothalamus.nii'
+
+standardT2 = os.path.join(os.environ['FSLDIR'], 'data/standard/MNI152_T2_1mm_brain.nii.gz')
+standardT1 = os.path.join(os.environ['FSLDIR'], 'data/standard/MNI152_T1_1mm_brain.nii.gz')
+brain_mask_nmi = os.path.join(os.environ['FSLDIR'], 'data/standard/MNI152_T1_1mm_brain_mask.nii.gz')
+
 defaultb0Reference = 0
 extension = '.nii.gz'
 idEddyCorrect = '_EddyCorrect'

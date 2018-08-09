@@ -1,18 +1,16 @@
 __author__ = 'Jrudascas'
 
 import os
-import main as main
-import utils as utils3
-pathInStudy = "/home/jrudascas/Desktop/MONTOYA/In/"
-pathOutStudy = "/home/jrudascas/Desktop/MONTOYA/Out/"
+import main as m
+import definitions as d
 
 lstFiles = []
-lstDir = os.walk(pathInStudy)
+lstDir = os.walk(d.path_input)
 
 for root, dirs, files in lstDir:
     for dir in dirs:
 
-        if not (os.path.exists(pathOutStudy + os.sep + dir)):
-            os.mkdir(pathOutStudy + os.sep + dir)
-        print("Finding into " + pathInStudy + os.sep + dir + os.sep)
-        main.Main(pathInStudy + os.sep + dir + os.sep, pathOutStudy + os.sep + dir + os.sep)
+        if not (os.path.exists(d.path_output + os.sep + dir)):
+            os.mkdir(d.path_output + os.sep + dir)
+        print("Finding into " + d.path_input + os.sep + dir + os.sep)
+        m.run_main(d.path_input + os.sep + dir + os.sep, d.path_output + os.sep + dir + os.sep)

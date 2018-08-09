@@ -1,8 +1,6 @@
 __author__ = 'Jrudascas'
 
 import main as main
+import definitions as d
 
-pathIn          = '/home/jrudascas/Desktop/DWITest/Datos_Entrada/'
-pathOut         = '/home/jrudascas/Desktop/DWITest/Datos_Salida/'
-
-main.Main(pathIn, pathOut)
+main.run_main(d.path_input, d.path_output)

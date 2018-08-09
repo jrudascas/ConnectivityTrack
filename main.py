@@ -12,7 +12,7 @@ import core as p
 import utils as utils
 from dipy.core.geometry import vector_norm
 
-def Main (path_in, path_out):
+def run_main(path_in, path_out):
     import numpy as np
     print('...................................')
     print('        Starting Processing        ')
@@ -73,9 +73,9 @@ def Main (path_in, path_out):
         if not (os.path.exists(path_out + refName + '_BET.nii')):
             fsl.BET(files_found['t1'], path_out + refName + '_BET.nii', '-f .4')
 
-        if not(os.path.exists(path_out + refName + '_Normalized.nii')):
+        if not(os.path.exists(path_out + refName + '_normalized.nii')):
            warped_t1, MNI_T2_affine, mapping_t1 = p.registrationtoNMI(path_out + refName + '_BET.nii.gz', path_out)
-           nib.save(nib.Nifti1Image(warped_t1.astype(np.float32), MNI_T2_affine), path_out + refName + '_Normalized.nii')
+           nib.save(nib.Nifti1Image(warped_t1.astype(np.float32), MNI_T2_affine), path_out + refName + '_BET_normalized.nii')
 
         print('-> Ending preprocessing of structural image')
         print()
