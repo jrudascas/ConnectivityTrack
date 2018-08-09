@@ -3,13 +3,13 @@ __author__ = 'brain'
 import core as p
 
 
-def processing(path_dwi_input, path_binary_mask, path_out, path_bval, path_bvec):
-    f_tensor_fitevecs, f_tensor_fitevals = p.to_estimate_dti(path_dwi_input, path_binary_mask, path_out, path_bval,
+def processing(path_dwi_input, path_binary_mask, path_output, path_bval, path_bvec):
+    f_tensor_fitevecs, f_tensor_fitevals = p.to_estimate_dti(path_dwi_input, path_binary_mask, path_output, path_bval,
                                                              path_bvec)
 
-    p.to_estimate_dti_maps(path_dwi_input, path_binary_mask, f_tensor_fitevecs, f_tensor_fitevals, path_out,
-                           path_bvec, path_bval)
-    p.to_generate_tractography(path_dwi_input, path_binary_mask, path_out, path_bval, path_bvec)
+    p.to_estimate_dti_maps(path_dwi_input, path_output, f_tensor_fitevecs, f_tensor_fitevals)
+
+    p.to_generate_tractography(path_dwi_input, path_binary_mask, path_output, path_bval, path_bvec)
 
     #dictAtlas = {'Morel': morelAtlas, 'AAN': aanAtlas, 'HarvardOxfordCort': harvardOxfordCortAtlas,
     #             'HypothalamusAtlas': hypothalamusAtlas}
