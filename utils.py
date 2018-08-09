@@ -4,32 +4,38 @@ import os
 from os import listdir
 from os.path import isfile, join
 
-def extractFileNameExt (file_in):
-    return file_in.split('/')[file_in.split('/').__len__() - 1]
 
-def extractFileName (file_in):
-    refName = file_in.split('/')[file_in.split('/').__len__() - 1]
+def to_extract_filename_extention(path_input):
+    return path_input.split('/')[path_input.split('/').__len__() - 1]
+
+
+def to_extract_filename(path_input):
+    refName = to_extract_filename_extention(path_input)
     return refName.split('.')[0]
 
-def extractExtensionFile (file_in):
-    refName = file_in.split('/')[file_in.split('/').__len__() - 1]
+
+def to_extract_extension(path_input):
+    refName = to_extract_filename_extention(path_input)
     return refName.split('.')[1]
 
-def delete_Files(folder):
-      files_dump = [join(folder, c) for c in listdir(folder)]
-      files_dump = filter(lambda c: isfile(c), files_dump)
-      [os.remove(c) for c in files_dump]
 
-def toValidateExtention(path, extList):
-    if extractExtensionFile(path) in extList:
+def to_delete_files(folder):
+    files_dump = [join(folder, c) for c in listdir(folder)]
+    files_dump = filter(lambda c: isfile(c), files_dump)
+    [os.remove(c) for c in files_dump]
+
+
+def to_validate_extention(path, extList):
+    if to_extract_extension(path) in extList:
         return True
     else:
         return False
 
-def whatKindFileIs(path):
+
+def what_kind_neuroimage_is(path):
     import nibabel as nib
 
-    def isT1(path):
+    def is_t1(path):
         try:
             image = nib.load(path)
         except:
@@ -40,7 +46,7 @@ def whatKindFileIs(path):
         else:
             return False
 
-    def isDWI(path):
+    def is_dwi(path):
         try:
             image = nib.load(path)
         except:
@@ -51,17 +57,14 @@ def whatKindFileIs(path):
         else:
             return False
 
-    if extractExtensionFile(path) == 'bvec':
+    if to_extract_extension(path) == 'bvec':
         return 'bvec'
-    elif extractExtensionFile(path) == 'bval':
+    elif to_extract_extension(path) == 'bval':
         return 'bval'
-    elif toValidateExtention(path, ['nii', 'gz']):
-        if isT1(path):
+    elif to_validate_extention(path, ['nii', 'gz']):
+        if is_t1(path):
             return 't1'
-        elif isDWI(path):
+        elif is_dwi(path):
             return 'dwi'
-        else: return 'unknown'
-
-
-
-
+        else:
+            return 'unknown'

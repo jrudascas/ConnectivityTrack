@@ -11,6 +11,8 @@ import definitions as d
 import core as p
 import utils as utils
 from dipy.core.geometry import vector_norm
+import warnings
+warnings.filterwarnings("always")
 
 def run_main(path_in, path_out):
     import numpy as np
@@ -27,8 +29,8 @@ def run_main(path_in, path_out):
         for fichero in files:
             (file_name, extension) = os.path.splitext(fichero)
             fullPath = path_in + file_name + extension
-            if utils.toValidateExtention(fullPath, validExtentions):
-                files_found[utils.whatKindFileIs(fullPath)] = fullPath
+            if utils.to_validate_extention(fullPath, validExtentions):
+                files_found[utils.what_kind_neuroimage_is(fullPath)] = fullPath
 
     print('Were found these files and will be processed: ')
 
@@ -59,7 +61,7 @@ def run_main(path_in, path_out):
         nib.save(nib.Nifti1Image(data, affine), files_found['dwi'])
 
     if os.path.exists(d.path_temporal):
-        ut.delete_Files(d.path_temporal)
+        ut.to_delete_files(d.path_temporal)
         os.removedirs(d.path_temporal)
 
     os.mkdir(d.path_temporal)
@@ -68,10 +70,10 @@ def run_main(path_in, path_out):
         print(' ')
         print('-> Starting preprocessing of structural image')
         print(' ')
-        refName = utils.extractFileName(files_found['t1'])
+        refName = utils.to_extract_filename(files_found['t1'])
 
         if not (os.path.exists(path_out + refName + '_BET.nii')):
-            fsl.BET(files_found['t1'], path_out + refName + '_BET.nii', '-f .4')
+            fsl.bet(files_found['t1'], path_out + refName + '_BET.nii', '-f .4')
 
         if not(os.path.exists(path_out + refName + '_BET_normalized.nii')):
            warped_t1, MNI_T2_affine, mapping_t1 = p.registrationtoNMI(path_out + refName + '_BET.nii.gz', path_out)

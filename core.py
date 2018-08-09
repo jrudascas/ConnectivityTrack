@@ -22,6 +22,9 @@ import scipy.ndimage as ndim
 from dipy.io.trackvis import save_trk
 from dipy.denoise.noise_estimate import estimate_sigma
 from time import time
+import warnings
+
+warnings.filterwarnings("always")
 
 
 def eddy_correction(file_in, outPath, ref_bo):
@@ -37,29 +40,25 @@ def eddy_correction(file_in, outPath, ref_bo):
     Out:
 
     """
-    t = time()
-    print('    - running Eddy Correction...')
-    refNameOnly = utils.extractFileName(file_in)
 
-    if not (os.path.exists(outPath + utils.extractFileName(file_in) + d.idEddyCorrect + d.extension)):
-        refName = utils.extractFileNameExt(file_in)
+    print('    - running Eddy Correction...')
+    refNameOnly = utils.to_extract_filename(file_in)
+
+    if not (os.path.exists(outPath + utils.to_extract_filename(file_in) + d.id_eddy_correct + d.extension)):
+        refName = utils.to_extract_filename_extention(file_in)
 
         os.system('cp ' + file_in + ' ' + d.path_temporal)  # Copiamos archivo de difusion a la carpeta temporal
-        fsl.EDDYCORRECT(d.path_temporal + refName, d.path_temporal + refNameOnly + d.idEddyCorrect + '.nii', ref_bo)
+        fsl.eddy_correct(d.path_temporal + refName, d.path_temporal + refNameOnly + d.id_eddy_correct + '.nii', ref_bo)
         os.system(
-            'cp ' + d.path_temporal + refNameOnly + d.idEddyCorrect + d.extension + ' ' + outPath)  # Copiamos archivo de difusion desde carpeta temporal
+            'cp ' + d.path_temporal + refNameOnly + d.id_eddy_correct + d.extension + ' ' + outPath)  # Copiamos archivo de difusion desde carpeta temporal
 
-    print("Total time: ", time() - t)
-    print()
-
-    return outPath + refNameOnly + d.idEddyCorrect + d.extension
+    return outPath + refNameOnly + d.id_eddy_correct + d.extension
 
 
 def reslicing(file_in, outPath, vox_sz):
-    t = time()
     print('    - runnning Reslice...')
 
-    finalFileName = outPath + utils.extractFileName(file_in) + d.idReslice + d.extension
+    finalFileName = outPath + utils.to_extract_filename(file_in) + d.id_reslice + d.extension
     if not (os.path.exists(finalFileName)):
         img = nib.load(file_in)
         data = img.get_data()
@@ -70,33 +69,22 @@ def reslicing(file_in, outPath, vox_sz):
         new_vox_sz = (vox_sz, vox_sz, vox_sz)
 
         # Si el tamano del voxel es isotropico, no es necesario hacer el reslice
-        print('Old size:' + str(old_vox_sz))
-        print('New size:' + str(new_vox_sz))
 
         data, affine = reslice(data, affine, old_vox_sz, new_vox_sz)
 
         nib.save(nib.Nifti1Image(data, affine), finalFileName)
-        # nib.save(nib.Nifti1Image(data[:,:,:,0], affine), outPath + refNameOnly + '_only_b0_' + d.idReslice + d.extension)
-
-        # img = nib.load(outPath + refNameOnly + d.idReslice + d.extension)
-        # vox_sz = img.get_header().get_zooms()[:3]
-        # a = 1
-    print("Total time: ", time() - t)
-    print()
-
     return finalFileName
 
 
 def betDWI(file_in, outPath):
-    t = time()
     print('    - running BET with FSL...')
 
-    finalFileName = outPath + utils.extractFileName(file_in) + d.id_bet + '_dwi_masked' + d.extension
-    binaryMaskFileName = outPath + utils.extractFileName(file_in) + d.id_bet + '_b0_masked_mask' + d.extension
-    b0MaskedFileName = outPath + utils.extractFileName(file_in) + d.id_bet + '_b0_masked' + d.extension
+    finalFileName = outPath + utils.to_extract_filename(file_in) + d.id_bet + '_dwi_masked' + d.extension
+    binaryMaskFileName = outPath + utils.to_extract_filename(file_in) + d.id_bet + '_b0_masked_mask' + d.extension
+    b0MaskedFileName = outPath + utils.to_extract_filename(file_in) + d.id_bet + '_b0_masked' + d.extension
 
     if not (os.path.exists(b0MaskedFileName)):
-        fsl.BET(file_in, b0MaskedFileName, '-m -f .4')
+        fsl.bet(file_in, b0MaskedFileName, '-m -f .4')
 
         imgMask = nib.load(binaryMaskFileName)
         dataMask = imgMask.get_data()
@@ -107,17 +95,13 @@ def betDWI(file_in, outPath):
         data[dataMask == 0] = 0
         nib.save(nib.Nifti1Image(data.astype(np.float32), img.affine), finalFileName)
 
-    print("Total time: ", time() - t)
-    print()
-
     return finalFileName, binaryMaskFileName
 
 
 def nonLocalMean(file_in, outPath):
-    t = time()
     print('    - running NonLocal Mean algoritm...')
 
-    finalFileName = outPath + utils.extractFileName(file_in) + d.idNonLocalMean + d.extension
+    finalFileName = outPath + utils.to_extract_filename(file_in) + d.id_non_local_mean + d.extension
 
     if not (os.path.exists(finalFileName)):
         img = nib.load(file_in)
@@ -132,20 +116,15 @@ def nonLocalMean(file_in, outPath):
             newData[:, :, :, index] = nlmeans(data[:, :, :, index], sigma=sigma)
 
         nib.save(nib.Nifti1Image(newData.astype(np.float32), img.affine), finalFileName)
-
-    print("Total time: ", time() - t)
-    print()
-
     return finalFileName
 
 
 def medianOtsu(file_in, outPath, median_radius=4, num_pass=4):
-    t = time()
     print('    - running Median Otsu algoritm...')
 
-    finalFileName = outPath + utils.extractFileName(file_in) + d.idMedianOtsu + '_maskedVolume' + d.extension
-    binaryMaskFileName = outPath + utils.extractFileName(file_in) + d.idMedianOtsu + '_binaryMask' + d.extension
-    b0MaskedFileName = outPath + utils.extractFileName(file_in) + d.idMedianOtsu + '_b0Masked' + d.extension
+    finalFileName = outPath + utils.to_extract_filename(file_in) + d.id_median_otsu + '_maskedVolume' + d.extension
+    binaryMaskFileName = outPath + utils.to_extract_filename(file_in) + d.id_median_otsu + '_binaryMask' + d.extension
+    b0MaskedFileName = outPath + utils.to_extract_filename(file_in) + d.id_median_otsu + '_b0Masked' + d.extension
 
     if not (os.path.exists(finalFileName)):
         img = nib.load(file_in)
@@ -154,26 +133,22 @@ def medianOtsu(file_in, outPath, median_radius=4, num_pass=4):
 
         nib.save(nib.Nifti1Image(maskedvolume.astype(np.float32), img.affine), finalFileName)
         nib.save(nib.Nifti1Image(mask.astype(np.float32), img.affine), binaryMaskFileName)
-        nib.save(nib.Nifti1Image(maskedvolume[:, :, :, d.defaultb0Reference].astype(np.float32), img.affine),
+        nib.save(nib.Nifti1Image(maskedvolume[:, :, :, d.default_b0_ref].astype(np.float32), img.affine),
                  b0MaskedFileName)
-
-    print("Total time: ", time() - t)
-    print()
 
     return finalFileName, binaryMaskFileName
 
 
 def to_estimate_dti(file_in, file_inMask, outPath, fbval, fbvec):
-    t = time()
     print(d.separador + 'building DTI Model...')
 
-    ref_name = utils.extractFileName(file_in)
+    ref_name = utils.to_extract_filename(file_in)
 
-    if (not (os.path.exists(outPath + ref_name + d.idEvecs + d.extension))) | (
-            not (os.path.exists(outPath + ref_name + d.idEvals + d.extension))):
+    if (not (os.path.exists(outPath + ref_name + d.id_evecs + d.extension))) | (
+            not (os.path.exists(outPath + ref_name + d.id_evals + d.extension))):
         try:
-            os.remove(outPath + ref_name + d.idEvecs + d.extension)
-            os.remove(outPath + ref_name + d.idEvals + d.extension)
+            os.remove(outPath + ref_name + d.id_evecs + d.extension)
+            os.remove(outPath + ref_name + d.id_evals + d.extension)
         except:
             print("Unexpected error:", sys.exc_info()[0])
 
@@ -189,18 +164,16 @@ def to_estimate_dti(file_in, file_inMask, outPath, fbval, fbvec):
         tensor_fitted = tensor_model.fit(data, mask)
 
         nib.save(nib.Nifti1Image(tensor_fitted.evecs.astype(np.float32), img.affine),
-                 outPath + ref_name + d.idEvecs + d.extension)
+                 outPath + ref_name + d.id_evecs + d.extension)
         nib.save(nib.Nifti1Image(tensor_fitted.evals.astype(np.float32), img.affine),
-                 outPath + ref_name + d.idEvals + d.extension)
+                 outPath + ref_name + d.id_evals + d.extension)
 
-    print("Total time: ", time() - t)
-
-    return outPath + ref_name + d.idEvecs + d.extension, outPath + ref_name + d.idEvals + d.extension
+    return outPath + ref_name + d.id_evecs + d.extension, outPath + ref_name + d.id_evals + d.extension
 
 
 def to_estimate_dti_maps(path_dwi_input, path_output, file_tensor_fitevecs, file_tensor_fitevals):
     import utils as u
-    ref_name_only = u.extractFileName(file_tensor_fitevecs)
+    ref_name_only = u.to_extract_filename(file_tensor_fitevecs)
     ref_name_only = ref_name_only[:-9]
 
     img_tensorFitevecs = nib.load(file_tensor_fitevecs)
@@ -211,40 +184,40 @@ def to_estimate_dti_maps(path_dwi_input, path_output, file_tensor_fitevecs, file
 
     affine = img_tensorFitevecs.affine
 
-    print(d.separador + 'Calculando el mapa de anisotropia fraccional')
+    print(d.separador + d.separador + 'Calculando el mapa de anisotropia fraccional')
     FA = fractional_anisotropy(evals)
     FA[np.isnan(FA)] = 0
 
-    print(d.separador + 'Calculando el mapa de anisotropia fraccional RGB')
+    print(d.separador + d.separador + 'Calculando el mapa de anisotropia fraccional RGB')
     FA2 = np.clip(FA, 0, 1)
     RGB = color_fa(FA2, evecs)
 
-    print(d.separador + 'Calculando el mapa de difusividad media')
+    print(d.separador + d.separador + 'Calculando el mapa de difusividad media')
     MD = dti.mean_diffusivity(evals)
 
-    print(d.separador + 'Calculando el mapa de difusividad axial')
+    print(d.separador + d.separador + 'Calculando el mapa de difusividad axial')
     AD = dti.axial_diffusivity(evals)
 
-    print(d.separador + 'Calculando el mapa de difusividad radial')
+    print(d.separador + d.separador + 'Calculando el mapa de difusividad radial')
     RD = dti.radial_diffusivity(evals)
 
-    print(d.separador + 'Guardando el mapa de FA')
+    print(d.separador + d.separador + 'Guardando el mapa de FA')
     nib.save(nib.Nifti1Image(FA.astype(np.float32), affine), path_output + ref_name_only + '_FA' + d.extension)
 
-    print(d.separador + 'Guardando el mapa de FA a Color')
+    print(d.separador + d.separador + 'Guardando el mapa de FA a Color')
     nib.save(nib.Nifti1Image(np.array(255 * RGB, 'uint8'), affine),
              path_output + ref_name_only + '_FA_RGB' + d.extension)
 
-    print(d.separador + 'Guardando el mapa de difusion media')
+    print(d.separador + d.separador + 'Guardando el mapa de difusion media')
     nib.save(nib.Nifti1Image(MD.astype(np.float32), affine), path_output + ref_name_only + '_MD' + d.extension)
 
-    print(d.separador + 'Guardando el mapa de difusividad axial')
+    print(d.separador + d.separador + 'Guardando el mapa de difusividad axial')
     nib.save(nib.Nifti1Image(AD.astype(np.float32), affine), path_output + ref_name_only + '_AD' + d.extension)
 
-    print(d.separador + 'Guardando el mapa de difusividad radial')
+    print(d.separador + d.separador + 'Guardando el mapa de difusividad radial')
     nib.save(nib.Nifti1Image(RD.astype(np.float32), affine), path_output + ref_name_only + '_RD' + d.extension)
 
-    print(d.separador + 'Guardando la Tractografia')
+    print(d.separador + d.separador + 'Guardando la Tractografia')
 
     sphere = get_sphere('symmetric724')
     peak_indices = quantize_evecs(evecs, sphere.vertices)
@@ -306,7 +279,7 @@ def to_generate_tractography(path_dwi_input, path_binary_mask, path_out, path_bv
 
 
 def to_register_dwi_to_mni(path_in, path_out, path_bvec, path_bval):
-    ref_name = utils.extractFileName(path_in)
+    ref_name = utils.to_extract_filename(path_in)
 
     if not os.path.exists(path_out + ref_name + '_normalized' + d.extension):
 
@@ -321,7 +294,7 @@ def to_register_dwi_to_mni(path_in, path_out, path_bvec, path_bval):
 
         mean_b0 = np.mean(b0, -1)
 
-        mni_t2 = nib.load(d.standardT2)
+        mni_t2 = nib.load(d.standard_t2)
         mni_t2_data = mni_t2.get_data()
         MNI_T2_affine = mni_t2.affine
 
@@ -357,7 +330,7 @@ def to_register_t1_to_nmi(path_in, path_out):
     data = img.get_data()
     affineStructural = img.affine
 
-    MNI_T1 = nib.load(d.standardT1)
+    MNI_T1 = nib.load(d.standard_t1)
     MNI_T1_data = MNI_T1.get_data()
     MNI_T1_affine = MNI_T1.affine
 
@@ -385,7 +358,7 @@ def registrationtoNMI(file_in, outPath):
     data = img.get_data()
     affineStructural = img.affine
 
-    MNI_T2 = nib.load(d.standardT2)
+    MNI_T2 = nib.load(d.standard_t2)
     MNI_T2_data = MNI_T2.get_data()
     MNI_T2_affine = MNI_T2.affine
 
@@ -438,11 +411,11 @@ def registerAffine_atlas(pathAtlas, pathStandard, outPath, tempPath, affineSubje
 
     indexs = np.unique(atlas_data)
 
-    refNameOnly = utils.extractFileName(pathAtlas)
+    refNameOnly = utils.to_extract_filename(pathAtlas)
 
-    file_outSubject, omatSubject = fsl.FLIRT(pathStandard, tempPath + 'Aux_FLIRT' + d.extension, Subject,
+    file_outSubject, omatSubject = fsl.flirt(pathStandard, tempPath + 'Aux_FLIRT' + d.extension, Subject,
                                              tempPath + 'Aux_FLIRT_omat.mat')
-    fsl.hexTodec(omatSubject, omatSubject + '.mat2')
+    fsl.hex_to_dec(omatSubject, omatSubject + '.mat2')
     omatSubject = omatSubject + '.mat2'
 
     for index in indexs:
@@ -450,7 +423,7 @@ def registerAffine_atlas(pathAtlas, pathStandard, outPath, tempPath, affineSubje
         nib.save(nib.Nifti1Image(roi.astype(np.float32), affineSubject),
                  tempPath + refNameOnly + '_ROI_' + str(index) + d.extension)
 
-        fsl.FLIRT_xfm(tempPath + refNameOnly + '_ROI_' + str(index) + d.extension,
+        fsl.flirt_xfm(tempPath + refNameOnly + '_ROI_' + str(index) + d.extension,
                       outPath + refNameOnly + '_ROI_' + str(index) + '_FLIRT' + d.extension, Subject, omatSubject)
 
 
@@ -460,7 +433,7 @@ def register_atlas(pathAtlas, outPath, affineSubject, mapping):
 
     indexs = np.unique(atlas_data)
 
-    refNameOnly = utils.extractFileName(pathAtlas)
+    refNameOnly = utils.to_extract_filename(pathAtlas)
 
     for index in indexs:
         roi = (atlas_data == index)
@@ -579,33 +552,35 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
             if not ('roi' in locals()):
                 roi = np.zeros(temp.shape)
                 roi[temp != elementROI] = True
-                #roi = nib.load(atlas_dict[rule[0][0]][elementROI - 1]).get_data().astype(bool)
+                # roi = nib.load(atlas_dict[rule[0][0]][elementROI - 1]).get_data().astype(bool)
             else:
                 aux = np.zeros(temp.shape)
                 aux[temp != elementROI] = True
                 roi = roi | aux
 
-        nib.save(nib.Nifti1Image(roi.astype(np.float32), dwi_affine), path_output + 'roi_rule_' + str(ruleNumber) + '.nii')
+        nib.save(nib.Nifti1Image(roi.astype(np.float32), dwi_affine),
+                 path_output + 'roi_rule_' + str(ruleNumber) + '.nii')
 
         for elementROI in rule[1][1]:
             temp = nib.load(atlas_dict[rule[1][0]]).get_data()
             if not ('target' in locals()):
                 target = np.zeros(temp.shape)
                 target[temp != elementROI] = True
-                #target = nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
+                # target = nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
             else:
-                #target = target | nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
+                # target = target | nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
                 aux = np.zeros(temp.shape)
                 aux[temp != elementROI] = True
                 target = target | aux
 
-        nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine), path_output + 'target_rule_' + str(ruleNumber) + '.nii')
+        nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine),
+                 path_output + 'target_rule_' + str(ruleNumber) + '.nii')
 
-        seeds = utils.seeds_from_mask(roi.astype(bool), density=[3, 3, 3], affine=dwi_affine)
+        seeds = utils.seeds_from_mask(roi.astype(bool), density=[1, 1, 1], affine=dwi_affine)
 
-        streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=.5)
+        streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=1)
 
-        streamlines = [s for s in streamlines if s.shape[0] > 5]
+        streamlines = [s for s in streamlines if s.shape[0] > 10]
 
         streamlines = list(streamlines)
 
@@ -644,13 +619,13 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
                 if not ('roiFiltered' in locals()):
                     roiFiltered = np.zeros(temp.shape)
                     roiFiltered[temp != elementROI] = True
-                    #roiFiltered = nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
+                    # roiFiltered = nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
                 else:
                     aux = np.zeros(temp.shape)
                     aux[temp != elementROI] = True
 
                     roiFiltered = roiFiltered | aux
-                    #roiFiltered = roiFiltered | nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
+                    # roiFiltered = roiFiltered | nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
 
             bunddleFiltered = []
 
@@ -663,7 +638,8 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
                 if sum(labelsROI) == 0:
                     bunddleFiltered.append(b_Aux)
 
-            save_trk(path_output + 'bundleROI_to_TARGET_Filtered_rule_' + str(ruleNumber) + '.trk', bunddleFiltered, dwi_affine, roi.shape)
+            save_trk(path_output + 'bundleROI_to_TARGET_Filtered_rule_' + str(ruleNumber) + '.trk', bunddleFiltered,
+                     dwi_affine, roi.shape)
 
             print('Finished exclusive filtering: ' + str(time() - t))
             del roiFiltered

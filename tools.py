@@ -12,10 +12,14 @@ from dipy.align.imaffine import (transform_centers_of_mass,
 from dipy.align.transforms import (TranslationTransform3D,
                                    RigidTransform3D,
                                    AffineTransform3D)
+import warnings
+
+warnings.filterwarnings("always")
 
 syn_metric_dict = {'CC': CCMetric,
                    'EM': EMMetric,
                    'SSD': SSDMetric}
+
 
 def syn_registration(moving, static,
                      moving_grid2world=None,
@@ -58,7 +62,7 @@ def syn_registration(moving, static,
     use_metric = syn_metric_dict[metric](dim, sigma_diff=sigma_diff)
 
     sdr = SymmetricDiffeomorphicRegistration(use_metric, level_iters,
-                                            step_length=step_length)
+                                             step_length=step_length)
     mapping = sdr.optimize(static, moving,
                            static_grid2world=static_grid2world,
                            moving_grid2world=moving_grid2world,
@@ -66,6 +70,7 @@ def syn_registration(moving, static,
 
     warped_moving = mapping.transform(moving)
     return warped_moving, mapping
+
 
 def resample(moving, static, moving_grid2world, static_grid2world):
     """
@@ -75,6 +80,7 @@ def resample(moving, static, moving_grid2world, static_grid2world):
                            static.shape, static_grid2world,
                            moving.shape, moving_grid2world)
     resampled = affine_map.transform(moving)
+
 
 # Affine registration pipeline:
 affine_metric_dict = {'MI': MutualInformationMetric}
@@ -89,7 +95,7 @@ def c_of_mass(moving, static, static_grid2world, moving_grid2world,
 
 
 def translation(moving, static, static_grid2world, moving_grid2world,
-                 reg, starting_affine, params0=None):
+                reg, starting_affine, params0=None):
     transform = TranslationTransform3D()
     translation = reg.optimize(static, moving, transform, params0,
                                static_grid2world, moving_grid2world,
@@ -99,19 +105,20 @@ def translation(moving, static, static_grid2world, moving_grid2world,
 
 
 def rigid(moving, static, static_grid2world, moving_grid2world,
-           reg, starting_affine, params0=None):
+          reg, starting_affine, params0=None):
     transform = RigidTransform3D()
     rigid = reg.optimize(static, moving, transform, params0,
-                            static_grid2world, moving_grid2world,
-                            starting_affine=starting_affine)
+                         static_grid2world, moving_grid2world,
+                         starting_affine=starting_affine)
     return rigid.transform(moving), rigid.affine
 
+
 def affine(moving, static, static_grid2world, moving_grid2world,
-            reg, starting_affine, params0=None):
+           reg, starting_affine, params0=None):
     transform = AffineTransform3D()
     affine = reg.optimize(static, moving, transform, params0,
-                             static_grid2world, moving_grid2world,
-                             starting_affine=starting_affine)
+                          static_grid2world, moving_grid2world,
+                          starting_affine=starting_affine)
 
     return affine.transform(moving), affine.affine
 
@@ -123,9 +130,9 @@ def affine_registration(moving, static,
                         sampling_prop=None,
                         metric='MI',
                         pipeline=[c_of_mass, translation, rigid, affine],
-                        level_iters = [10000, 1000, 100],
-                        sigmas = [3.0, 1.0, 0.0],
-                        factors = [4, 2, 1],
+                        level_iters=[10000, 1000, 100],
+                        sigmas=[3.0, 1.0, 0.0],
+                        factors=[4, 2, 1],
                         params0=None):
     """
     Find the affine transformation between two 3D images

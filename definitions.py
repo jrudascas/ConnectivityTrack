@@ -4,28 +4,27 @@ import os
 
 path_input = '/home/runlab/data/SanJose/subject5/'
 path_output = '/home/runlab/data/results/SanJose/'
-
 path_temporal = '/home/runlab/data/results/Temporal/'
 
 atlas = '/home/runlab/data/Atlas/1mm/AAN_1mm.nii'
-aanAtlas = '/home/runlab/data/Atlas/1mm/1mm/AAN.nii'
-morelAtlas = '/home/runlab/data/Atlas/1mm/ThalamicNucleiMorelAtlas.nii'
-harvardOxfordCortAtlas = '/home/runlab/data/Atlas/1mm/HarvardOxfordCort.nii'
-hypothalamusAtlas = '/home/runlab/data/Atlas/1mm/Hypothalamus.nii'
+aan_atlas = '/home/runlab/data/Atlas/1mm/1mm/AAN.nii'
+morel_atlas = '/home/runlab/data/Atlas/1mm/ThalamicNucleiMorelAtlas.nii'
+harvard_oxford_cort_atlas = '/home/runlab/data/Atlas/1mm/HarvardOxfordCort.nii'
+hypothalamus_atlas = '/home/runlab/data/Atlas/1mm/Hypothalamus.nii'
 
-standardT2 = os.path.join(os.environ['FSLDIR'], 'data/standard/MNI152_T2_1mm_brain.nii.gz')
-standardT1 = os.path.join(os.environ['FSLDIR'], 'data/standard/MNI152_T1_1mm_brain.nii.gz')
+standard_t2 = os.path.join(os.environ['FSLDIR'], 'data/standard/MNI152_T2_1mm_brain.nii.gz')
+standard_t1 = os.path.join(os.environ['FSLDIR'], 'data/standard/MNI152_T1_1mm_brain.nii.gz')
 brain_mask_nmi = os.path.join(os.environ['FSLDIR'], 'data/standard/MNI152_T1_1mm_brain_mask.nii.gz')
 
-defaultb0Reference = 0
+default_b0_ref = 0
 extension = '.nii.gz'
-idEddyCorrect = '_EddyCorrect'
-idReslice = '_Reslice'
-idNonLocalMean = '_NonLocalMean'
-idMedianOtsu = '_MedianOtsu'
+id_eddy_correct = '_EddyCorrect'
+id_reslice = '_Reslice'
+id_non_local_mean = '_NonLocalMean'
+id_median_otsu = '_MedianOtsu'
 id_bet = '_BET'
-idEvecs = '_DTIEvecs'
-idEvals = '_DTIEvals'
+id_evecs = '_DTIEvecs'
+id_evals = '_DTIEvals'
 separador = '    - '
 vox_sz = 1.0
 threshold = 100
