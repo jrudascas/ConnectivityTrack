@@ -7,7 +7,7 @@ path_output = '/home/runlab/data/results/SanJose/'
 path_temporal = '/home/runlab/data/results/Temporal/'
 
 atlas = '/home/runlab/data/Atlas/1mm/AAN_1mm.nii'
-aan_atlas = '/home/runlab/data/Atlas/1mm/1mm/AAN.nii'
+aan_atlas = '/home/runlab/data/Atlas/1mm/AAN.nii'
 morel_atlas = '/home/runlab/data/Atlas/1mm/ThalamicNucleiMorelAtlas.nii'
 harvard_oxford_cort_atlas = '/home/runlab/data/Atlas/1mm/HarvardOxfordCort.nii'
 hypothalamus_atlas = '/home/runlab/data/Atlas/1mm/Hypothalamus.nii'

@@ -172,8 +172,8 @@ def to_estimate_dti(file_in, file_inMask, outPath, fbval, fbvec):
 
 
 def to_estimate_dti_maps(path_dwi_input, path_output, file_tensor_fitevecs, file_tensor_fitevals):
-    import utils as u
-    ref_name_only = u.to_extract_filename(file_tensor_fitevecs)
+
+    ref_name_only = utils.to_extract_filename(file_tensor_fitevecs)
     ref_name_only = ref_name_only[:-9]
 
     img_tensorFitevecs = nib.load(file_tensor_fitevecs)
@@ -184,40 +184,28 @@ def to_estimate_dti_maps(path_dwi_input, path_output, file_tensor_fitevecs, file
 
     affine = img_tensorFitevecs.affine
 
-    print(d.separador + d.separador + 'Calculando el mapa de anisotropia fraccional')
+    print(d.separador + d.separador + 'computing of FA map')
     FA = fractional_anisotropy(evals)
     FA[np.isnan(FA)] = 0
-
-    print(d.separador + d.separador + 'Calculando el mapa de anisotropia fraccional RGB')
-    FA2 = np.clip(FA, 0, 1)
-    RGB = color_fa(FA2, evecs)
-
-    print(d.separador + d.separador + 'Calculando el mapa de difusividad media')
-    MD = dti.mean_diffusivity(evals)
-
-    print(d.separador + d.separador + 'Calculando el mapa de difusividad axial')
-    AD = dti.axial_diffusivity(evals)
-
-    print(d.separador + d.separador + 'Calculando el mapa de difusividad radial')
-    RD = dti.radial_diffusivity(evals)
-
-    print(d.separador + d.separador + 'Guardando el mapa de FA')
     nib.save(nib.Nifti1Image(FA.astype(np.float32), affine), path_output + ref_name_only + '_FA' + d.extension)
 
-    print(d.separador + d.separador + 'Guardando el mapa de FA a Color')
+    print(d.separador + d.separador + 'computing of Color FA map')
+    FA2 = np.clip(FA, 0, 1)
+    RGB = color_fa(FA2, evecs)
     nib.save(nib.Nifti1Image(np.array(255 * RGB, 'uint8'), affine),
              path_output + ref_name_only + '_FA_RGB' + d.extension)
 
-    print(d.separador + d.separador + 'Guardando el mapa de difusion media')
+    print(d.separador + d.separador + 'computing of MD map')
+    MD = dti.mean_diffusivity(evals)
     nib.save(nib.Nifti1Image(MD.astype(np.float32), affine), path_output + ref_name_only + '_MD' + d.extension)
 
-    print(d.separador + d.separador + 'Guardando el mapa de difusividad axial')
+    print(d.separador + d.separador + 'computing of AD map')
+    AD = dti.axial_diffusivity(evals)
     nib.save(nib.Nifti1Image(AD.astype(np.float32), affine), path_output + ref_name_only + '_AD' + d.extension)
 
-    print(d.separador + d.separador + 'Guardando el mapa de difusividad radial')
+    print(d.separador + d.separador + 'computing of RD map')
+    RD = dti.radial_diffusivity(evals)
     nib.save(nib.Nifti1Image(RD.astype(np.float32), affine), path_output + ref_name_only + '_RD' + d.extension)
-
-    print(d.separador + d.separador + 'Guardando la Tractografia')
 
     sphere = get_sphere('symmetric724')
     peak_indices = quantize_evecs(evecs, sphere.vertices)
