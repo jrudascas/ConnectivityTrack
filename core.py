@@ -1,5 +1,8 @@
 __author__ = 'Jrudascas'
 
+import warnings
+warnings.filterwarnings("always")
+
 from dipy.tracking._utils import (_mapping_to_voxel, _to_voxel_coordinates)
 from dipy.core.gradients import gradient_table
 from dipy.data import get_sphere
@@ -22,9 +25,6 @@ import scipy.ndimage as ndim
 from dipy.io.trackvis import save_trk
 from dipy.denoise.noise_estimate import estimate_sigma
 from time import time
-import warnings
-
-warnings.filterwarnings("always")
 
 
 def eddy_correction(file_in, outPath, ref_bo):
@@ -538,12 +538,14 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
         for elementROI in rule[0][1]:
             temp = nib.load(atlas_dict[rule[0][0]]).get_data()
             if not ('roi' in locals()):
-                roi = np.zeros(temp.shape)
+                roi = np.zeros(temp.shape).astype(bool)
                 roi[temp != elementROI] = True
                 # roi = nib.load(atlas_dict[rule[0][0]][elementROI - 1]).get_data().astype(bool)
             else:
-                aux = np.zeros(temp.shape)
+                aux = np.zeros(temp.shape).astype(bool)
                 aux[temp != elementROI] = True
+                print(roi.shape)
+                print(aux.shape)
                 roi = roi | aux
 
         nib.save(nib.Nifti1Image(roi.astype(np.float32), dwi_affine),
@@ -552,12 +554,12 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
         for elementROI in rule[1][1]:
             temp = nib.load(atlas_dict[rule[1][0]]).get_data()
             if not ('target' in locals()):
-                target = np.zeros(temp.shape)
+                target = np.zeros(temp.shape).astype(bool)
                 target[temp != elementROI] = True
                 # target = nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
             else:
                 # target = target | nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
-                aux = np.zeros(temp.shape)
+                aux = np.zeros(temp.shape).astype(bool)
                 aux[temp != elementROI] = True
                 target = target | aux
 
@@ -605,11 +607,11 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
             for elementROI in rule[2][1]:
                 temp = nib.load(atlas_dict[rule[2][0]]).get_data()
                 if not ('roiFiltered' in locals()):
-                    roiFiltered = np.zeros(temp.shape)
+                    roiFiltered = np.zeros(temp.shape).astype(bool)
                     roiFiltered[temp != elementROI] = True
                     # roiFiltered = nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
                 else:
-                    aux = np.zeros(temp.shape)
+                    aux = np.zeros(temp.shape).astype(bool)
                     aux[temp != elementROI] = True
 
                     roiFiltered = roiFiltered | aux

@@ -1,5 +1,8 @@
 __author__ = 'brain'
 
+import warnings
+warnings.filterwarnings("always")
+
 import core as p
 import definitions as d
 

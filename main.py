@@ -1,5 +1,8 @@
 __author__ = 'Jrudascas'
 
+import warnings
+warnings.filterwarnings("always")
+
 import nibabel as nib
 from dipy.io import read_bvals_bvecs
 import os
@@ -11,8 +14,7 @@ import definitions as d
 import core as p
 import utils as utils
 from dipy.core.geometry import vector_norm
-import warnings
-warnings.filterwarnings("always")
+
 
 def run_main(path_in, path_out):
     import numpy as np

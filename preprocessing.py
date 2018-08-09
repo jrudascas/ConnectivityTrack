@@ -1,12 +1,10 @@
 __author__ = 'Jrudascas'
 
-import core as processData
-import definitions as d
-from dipy.core.gradients import gradient_table
-from dipy.io import read_bvals_bvecs
-import numpy as np
+import warnings
+warnings.filterwarnings("always")
 
-import core as p
+import core as c
+import definitions as d
 
 
 def preprocessing(path_dwi_input, path_out, path_bvec, path_bval):
@@ -16,11 +14,11 @@ def preprocessing(path_dwi_input, path_out, path_bvec, path_bval):
 
     process = {}
 
-    process['pathEddy'] = processData.eddy_correction(path_dwi_input, path_out, ref_bo)
-    process['pathNonLocalMean'] = processData.nonLocalMean(process['pathEddy'], path_out)
-    process['pathReslicing'] = processData.reslicing(process['pathNonLocalMean'], path_out, d.vox_sz)
+    process['pathEddy'] = c.eddy_correction(path_dwi_input, path_out, ref_bo)
+    process['pathNonLocalMean'] = c.nonLocalMean(process['pathEddy'], path_out)
+    process['pathReslicing'] = c.reslicing(process['pathNonLocalMean'], path_out, d.vox_sz)
     # maskedVolume, binaryMask = processData.medianOtsu(process[process.__len__() - 1], outPath)
-    maskedVolume, binaryMask = processData.betDWI(process['pathReslicing'], path_out)
+    maskedVolume, binaryMask = c.betDWI(process['pathReslicing'], path_out)
 
     process['pathDWIMasked'] = maskedVolume
     process['pathBinaryMask'] = binaryMask

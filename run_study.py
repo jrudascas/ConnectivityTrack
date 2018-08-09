@@ -1,5 +1,8 @@
 __author__ = 'Jrudascas'
 
+import warnings
+warnings.filterwarnings("always")
+
 import os
 import main as m
 import definitions as d
