@@ -4,7 +4,7 @@ import os
 
 path_input = '/home/runlab/data/SanJose/'
 path_output = '/home/runlab/data/results/SanJose/'
-path_temporal = '/home/runlab/data/results/Temporal/'
+path_temporal = '/home/runlab/data/results/temporal/'
 
 atlas = '/home/runlab/data/Atlas/1mm/AAN_1mm.nii'
 aan_atlas = '/home/runlab/data/Atlas/1mm/AAN.nii'
