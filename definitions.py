@@ -18,8 +18,8 @@ brain_mask_nmi = os.path.join(os.environ['FSLDIR'], 'data/standard/MNI152_T1_1mm
 
 default_b0_ref = 0
 extension = '.nii.gz'
-pre_diffusion_images = 'diffus'
-pre_functional_images = '/func/'
+pre_diffusion_images = 'diffus/'
+pre_functional_images = 'func/'
 pre_anatomica_images = 'anat/'
 
 id_eddy_correct = '_EddyCorrect'
