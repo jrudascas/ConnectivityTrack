@@ -26,8 +26,8 @@ def run_main(path_input, path_output):
     validExtentions = ['bvec', 'bval', 'nii', 'gz']
     files_found = {}
 
-    print(path_input)
-    print(path_output)
+    print(os.path.join(path_input, d.pre_diffusion_images))
+    print(os.path.join(path_input, d.pre_anatomica_images))
 
     lstDir = os.walk(os.path.join(path_input, d.pre_diffusion_images))
     for root, dirs, files in lstDir:

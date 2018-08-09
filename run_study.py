@@ -15,5 +15,4 @@ for subject in sorted(os.listdir(d.path_input)):
         if not (os.path.exists(os.path.join(d.path_output, subject))):
             os.mkdir(os.path.join(d.path_output, subject))
 
-        print(os.path.join(d.path_input, subject))
         m.run_main(os.path.join(d.path_input, subject), os.path.join(d.path_output, subject))
