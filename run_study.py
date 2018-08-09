@@ -10,11 +10,10 @@ import definitions as d
 lstFiles = []
 lstDir = os.walk(d.path_input)
 
-for root, dirs, files in lstDir:
-    for dir in dirs:
+for subject in sorted(os.listdir(d.path_input)):
+    if os.path.isdir(os.path.join(d.path_input, subject)):
+        if not (os.path.exists(os.path.join(d.path_output, subject))):
+            os.mkdir(os.path.join(d.path_output, subject))
 
-        if not (os.path.exists(os.path.join(d.path_output, dir))):
-            os.mkdir(os.path.join(d.path_output, dir))
-
-        print(dir)
-        m.run_main(os.path.join(d.path_inputput, dir), os.path.join(d.path_output, dir))
+        print(subject)
+        m.run_main(os.path.join(d.path_input, subject), os.path.join(d.path_output, subject))
