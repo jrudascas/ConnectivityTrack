@@ -65,22 +65,22 @@ def run_main(path_in, path_out):
     os.mkdir(d.path_temporal)
 
     if 't1' in files_found:
-        print()
+        print(' ')
         print('-> Starting preprocessing of structural image')
-        print()
+        print(' ')
         refName = utils.extractFileName(files_found['t1'])
 
         if not (os.path.exists(path_out + refName + '_BET.nii')):
             fsl.BET(files_found['t1'], path_out + refName + '_BET.nii', '-f .4')
 
-        if not(os.path.exists(path_out + refName + '_normalized.nii')):
+        if not(os.path.exists(path_out + refName + '_BET_normalized.nii')):
            warped_t1, MNI_T2_affine, mapping_t1 = p.registrationtoNMI(path_out + refName + '_BET.nii.gz', path_out)
            nib.save(nib.Nifti1Image(warped_t1.astype(np.float32), MNI_T2_affine), path_out + refName + '_BET_normalized.nii')
 
         print('-> Ending preprocessing of structural image')
-        print()
+        print(' ')
 
-    print()
+    print(' ')
     print('-> Starting preprocessing of diffution image')
 
     preprocessing_output = pre.preprocessing(files_found['dwi'], path_out, files_found['bvec'], files_found['bval'])
