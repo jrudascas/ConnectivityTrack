@@ -20,7 +20,7 @@ default_b0_ref = 0
 extension = '.nii.gz'
 pre_diffusion_images = 'diffus'
 pre_functional_images = '/func/'
-pre_anatomica_images = '/anat/'
+pre_anatomica_images = 'anat/'
 
 id_eddy_correct = '_EddyCorrect'
 id_reslice = '_Reslice'

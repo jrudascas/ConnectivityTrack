@@ -33,7 +33,7 @@ def run_main(path_input, path_output):
     for root, dirs, files in lstDir:
         for fichero in files:
             (file_name, extension) = os.path.splitext(fichero)
-            fullPath = path_input + file_name + extension
+            fullPath = os.path.join(path_input + file_name) + extension
             if utils.to_validate_extention(fullPath, validExtentions):
                 files_found[utils.what_kind_neuroimage_is(fullPath)] = fullPath
 
@@ -41,7 +41,7 @@ def run_main(path_input, path_output):
     for root, dirs, files in lstDir:
         for fichero in files:
             (file_name, extension) = os.path.splitext(fichero)
-            fullPath = path_input + file_name + extension
+            fullPath = os.path.join(path_input + file_name) + extension
             if utils.to_validate_extention(fullPath, validExtentions):
                 files_found[utils.what_kind_neuroimage_is(fullPath)] = fullPath
 
