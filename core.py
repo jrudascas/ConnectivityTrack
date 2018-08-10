@@ -507,6 +507,8 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
     dwi_data = dwi_img.get_data()
     dwi_affine = dwi_img.affine
 
+    affine_nmi = nib.load(d.standard_t1).affine
+
     dwi_mask_data = nib.load(path_binary_mask).get_data()
 
     g_tab = gradient_table(path_bval, path_bvec)
@@ -530,20 +532,17 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
     ruleNumber = 1
 
     for rule in rules:
-
-        t = time()
-
         print('Starting ROI reconstruction')
 
         for elementROI in rule[0][1]:
             temp = nib.load(atlas_dict[rule[0][0]]).get_data()
             if not ('roi' in locals()):
                 roi = np.zeros(temp.shape).astype(bool)
-                roi[temp != elementROI] = True
+                roi[temp == elementROI] = True
                 # roi = nib.load(atlas_dict[rule[0][0]][elementROI - 1]).get_data().astype(bool)
             else:
                 aux = np.zeros(temp.shape).astype(bool)
-                aux[temp != elementROI] = True
+                aux[temp == elementROI] = True
                 roi = roi | aux
 
         nib.save(nib.Nifti1Image(roi.astype(np.float32), dwi_affine),
@@ -553,12 +552,12 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
             temp = nib.load(atlas_dict[rule[1][0]]).get_data()
             if not ('target' in locals()):
                 target = np.zeros(temp.shape).astype(bool)
-                target[temp != elementROI] = True
+                target[temp == elementROI] = True
                 # target = nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
             else:
                 # target = target | nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
                 aux = np.zeros(temp.shape).astype(bool)
-                aux[temp != elementROI] = True
+                aux[temp == elementROI] = True
                 target = target | aux
 
         nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine),
@@ -572,7 +571,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         streamlines = list(streamlines)
 
-        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=dwi_affine, shape=roi.shape)
+        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=affine_nmi, shape=roi.shape)
 
         print('Finished ROI reconstruction: ' + str(time() - t))
 
@@ -594,7 +593,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
             if sum(labelsROI) > 0:
                 bunddle.append(sl_Aux)
 
-        save_trk(path_output + 'bundleROI_to_TARGET_rule_' + str(ruleNumber) + '.trk', bunddle, affine=dwi_affine, shape=roi.shape)
+        save_trk(path_output + 'bundleROI_to_TARGET_rule_' + str(ruleNumber) + '.trk', bunddle, affine=dwi_affine)
 
         print('Finished TARGET filtering: ' + str(time() - t))
 
@@ -606,11 +605,11 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
                 temp = nib.load(atlas_dict[rule[2][0]]).get_data()
                 if not ('roiFiltered' in locals()):
                     roiFiltered = np.zeros(temp.shape).astype(bool)
-                    roiFiltered[temp != elementROI] = True
+                    roiFiltered[temp == elementROI] = True
                     # roiFiltered = nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
                 else:
                     aux = np.zeros(temp.shape).astype(bool)
-                    aux[temp != elementROI] = True
+                    aux[temp == elementROI] = True
 
                     roiFiltered = roiFiltered | aux
                     # roiFiltered = roiFiltered | nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
@@ -627,7 +626,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
                     bunddleFiltered.append(b_Aux)
 
             save_trk(path_output + 'bundleROI_to_TARGET_Filtered_rule_' + str(ruleNumber) + '.trk', bunddleFiltered,
-                     affine=dwi_affine, shape=roi.shape)
+                     affine=affine_nmi)
 
             print('Finished exclusive filtering: ' + str(time() - t))
             del roiFiltered
