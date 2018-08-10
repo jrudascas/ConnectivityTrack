@@ -10,9 +10,16 @@ import definitions as d
 lstFiles = []
 lstDir = os.walk(d.path_input)
 
-for subject in sorted(os.listdir(d.path_input)):
-    if os.path.isdir(os.path.join(d.path_input, subject)):
-        if not (os.path.exists(os.path.join(d.path_output, subject))):
-            os.mkdir(os.path.join(d.path_output, subject))
+for group in sorted(os.listdir(d.path_input)):
+    path_group = os.path.join(d.path_input, group)
+    if os.path.isdir(path_group):
+        for subject in sorted(os.listdir(path_group)):
+            path_subject = os.path.join(path_group, subject)
+            if os.path.isdir(path_subject):
+                if not (os.path.exists(os.path.join(d.path_output, group))):
+                    os.mkdir(os.path.join(d.path_output, group))
 
-        m.run_main(os.path.join(d.path_input, subject), os.path.join(d.path_output, subject) + '/')
+                if not (os.path.exists(os.path.join(os.path.join(d.path_output, group), subject))):
+                    os.mkdir(os.path.join(os.path.join(d.path_output, group), subject))
+
+                m.run_main(path_subject, os.path.join(os.path.join(d.path_output, group), subject) + '/')
