@@ -577,7 +577,9 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
         hdr['voxel_order'] = 'LAS'
         hdr['dim'] = roi.shape
 
-        nib.trackvis.write(path_output + '_prueba_tractography.trk', streamlines, hdr, points_space='voxel')
+        tensor_streamlines_trk = ((sl, None, None) for sl in streamlines)
+
+        nib.trackvis.write(path_output + '_prueba_tractography.trk', tensor_streamlines_trk, hdr_mapping=hdr, points_space='voxel')
 
         print('Finished ROI reconstruction')
 
