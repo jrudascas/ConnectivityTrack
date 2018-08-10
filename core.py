@@ -545,7 +545,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
                 roi = roi | aux
 
         nib.save(nib.Nifti1Image(roi.astype(np.float32), dwi_affine),
-                 path_output + 'roi_rule_' + str(ruleNumber) + '.nii')
+                 path_output + 'roi_rule_' + str(ruleNumber) + '.nii.gz')
 
         for elementROI in rule[1][1]:
             temp = nib.load(atlas_dict[rule[1][0]]).get_data()
@@ -560,11 +560,11 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
                 target = target | aux
 
         nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine),
-                 path_output + 'target_rule_' + str(ruleNumber) + '.nii')
+                 path_output + 'target_rule_' + str(ruleNumber) + '.nii.gz')
 
-        seeds = utils.seeds_from_mask(roi.astype(bool), density=[1, 1, 1], affine=dwi_affine)
+        seeds = utils.seeds_from_mask(roi.astype(bool), density=[2, 2, 2], affine=affine_nmi)
 
-        streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=1)
+        streamlines = LocalTracking(csa_peaks, classifier, seeds, affine_nmi, step_size=1)
 
         streamlines = [s for s in streamlines if s.shape[0] > 30]
 
