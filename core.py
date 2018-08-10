@@ -564,13 +564,20 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         seeds = utils.seeds_from_mask(roi.astype(bool), density=[1, 1, 1], affine=dwi_affine)
 
-        streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=3)
+        streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=1)
 
         streamlines = [s for s in streamlines if s.shape[0] > 30]
 
         streamlines = list(streamlines)
 
         save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=affine_nmi, shape=roi.shape)
+
+        hdr = nib.trackvis.empty_header()
+        hdr['voxel_size'] = nib.load(path_dwi_input).get_header().get_zooms()[:3]
+        hdr['voxel_order'] = 'LAS'
+        hdr['dim'] = roi.shape
+
+        nib.trackvis.write(path_output + '_prueba_tractography.trk', streamlines, hdr, points_space='voxel')
 
         print('Finished ROI reconstruction')
 
