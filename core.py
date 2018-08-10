@@ -24,7 +24,6 @@ import tools as tools
 import scipy.ndimage as ndim
 from dipy.io.streamline import save_trk
 from dipy.denoise.noise_estimate import estimate_sigma
-from time import time
 
 
 def eddy_correction(file_in, outPath, ref_bo):
@@ -573,15 +572,13 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=affine_nmi, shape=roi.shape)
 
-        print('Finished ROI reconstruction: ' + str(time() - t))
+        print('Finished ROI reconstruction')
 
-        t = time()
 
         print('Starting TARGET filtering')
 
         bunddle = []
 
-        t = time()
         for sl in streamlines:
             # sl += offset
             # sl_Aux = np.copy(sl)
@@ -595,11 +592,10 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         save_trk(path_output + 'bundleROI_to_TARGET_rule_' + str(ruleNumber) + '.trk', bunddle, affine=dwi_affine)
 
-        print('Finished TARGET filtering: ' + str(time() - t))
+        print('Finished TARGET filtering')
 
         if len(rule) == 3:  # If is necessary other filtering (exclusition)
             print('Starting exclusive filtering')
-            t = time()
 
             for elementROI in rule[2][1]:
                 temp = nib.load(atlas_dict[rule[2][0]]).get_data()
@@ -628,7 +624,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
             save_trk(path_output + 'bundleROI_to_TARGET_Filtered_rule_' + str(ruleNumber) + '.trk', bunddleFiltered,
                      affine=affine_nmi)
 
-            print('Finished exclusive filtering: ' + str(time() - t))
+            print('Finished exclusive filtering:')
             del roiFiltered
         del roi
         del target
@@ -654,8 +650,6 @@ def toGenerateBunddle(roi1, roi2, data, gtab, affine):
 
     print('Starting the CsaOdfModel ROI')
 
-    t = time()
-
     ROIPath = '/home/jrudascas/Desktop/DWITest/Datos_Salida/AAN_1mm_ROI_1.0.nii.gz'
     ROImasked = nib.load(ROIPath)
     maskROI = ROImasked.get_data()
@@ -678,11 +672,8 @@ def toGenerateBunddle(roi1, roi2, data, gtab, affine):
 
     save_trk("/home/jrudascas/Desktop/DWITest/Datos_Salida/CsaOdfModelROI.trk", streamlines, affine, roi1.shape)
 
-    print('Reconstruction: ' + time() - t)
-
     bunddle = []
 
-    t = time()
     for sl in streamlines:
         # sl += offset
         # sl_Aux = np.copy(sl)
@@ -695,8 +686,6 @@ def toGenerateBunddle(roi1, roi2, data, gtab, affine):
             bunddle.append(sl_Aux)
 
         save_trk('/home/jrudascas/Desktop/DWITest/Datos_Salida/BundleROI_to_ROI.trk', bunddle, affine=affine, shape=roi2.shape)
-
-    print('ROI to ROI: ' + time() - t)
 
 def connectivity_matrix(streamlines, label_volume, voxel_size=None,
                         affine=None, symmetric=True, return_mapping=False,
