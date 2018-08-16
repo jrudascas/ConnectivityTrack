@@ -96,7 +96,7 @@ def run_main(path_input, path_output):
             fsl.bet(files_found['t1'], path_output + refName + '_BET.nii', '-f .4')
 
         if not(os.path.exists(path_output + refName + '_BET_normalized.nii')):
-            warped_t1, static_affine, mapping_t1 = p.registration_to(path_output + refName + '_BET.nii.gz', files_found['pathb0Masked'], path_output)
+            warped_t1, static_affine, mapping_t1 = p.registration_to(path_output + refName + '_BET.nii.gz', preprocessing_output['pathb0Masked'], path_output)
 
         print('-> Ending preprocessing of structural image')
         print(' ')
