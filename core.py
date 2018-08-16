@@ -1,6 +1,7 @@
 __author__ = 'Jrudascas'
 
 import warnings
+
 warnings.filterwarnings("always")
 
 from dipy.tracking._utils import (_mapping_to_voxel, _to_voxel_coordinates)
@@ -171,7 +172,6 @@ def to_estimate_dti(file_in, file_inMask, outPath, fbval, fbvec):
 
 
 def to_estimate_dti_maps(path_dwi_input, path_output, file_tensor_fitevecs, file_tensor_fitevals):
-
     ref_name_only = utils.to_extract_filename(file_tensor_fitevecs)
     ref_name_only = ref_name_only[:-9]
 
@@ -268,46 +268,47 @@ def to_generate_tractography(path_dwi_input, path_binary_mask, path_out, path_bv
 def to_register_dwi_to_mni(path_in, path_out, path_bvec, path_bval):
     ref_name = utils.to_extract_filename(path_in)
 
-    if not os.path.exists(path_out + ref_name + '_normalized' + d.extension):
+    # if not os.path.exists(path_out + ref_name + '_normalized' + d.extension):
 
-        img_DWI = nib.load(path_in)
-        data_DWI = img_DWI.get_data()
-        affine_DWI = img_DWI.affine
+    img_DWI = nib.load(path_in)
+    data_DWI = img_DWI.get_data()
+    affine_DWI = img_DWI.affine
 
-        bvals, bvecs = read_bvals_bvecs(path_bval, path_bvec)
-        gtab = gradient_table(bvals, bvecs)
+    bvals, bvecs = read_bvals_bvecs(path_bval, path_bvec)
+    gtab = gradient_table(bvals, bvecs)
 
-        b0 = data_DWI[..., gtab.b0s_mask]
+    b0 = data_DWI[..., gtab.b0s_mask]
 
-        mean_b0 = np.mean(b0, -1)
+    mean_b0 = np.mean(b0, -1)
 
-        mni_t2 = nib.load(d.standard_t2)
-        mni_t2_data = mni_t2.get_data()
-        MNI_T2_affine = mni_t2.affine
+    mni_t2 = nib.load(d.standard_t2)
+    mni_t2_data = mni_t2.get_data()
+    MNI_T2_affine = mni_t2.affine
 
-        directionWarped = np.zeros(
-            (mni_t2_data.shape[0], mni_t2_data.shape[1], mni_t2_data.shape[2], data_DWI.shape[-1]))
-        rangos = range(data_DWI.shape[-1])
+    directionWarped = np.zeros(
+        (mni_t2_data.shape[0], mni_t2_data.shape[1], mni_t2_data.shape[2], data_DWI.shape[-1]))
+    rangos = range(data_DWI.shape[-1])
 
-        affine, starting_affine = tools.affine_registration(mean_b0, mni_t2_data, moving_grid2world=affine_DWI,
-                                                            static_grid2world=MNI_T2_affine)
+    affine, starting_affine = tools.affine_registration(mean_b0, mni_t2_data, moving_grid2world=affine_DWI,
+                                                        static_grid2world=MNI_T2_affine)
 
-        warped_moving, mapping = tools.syn_registration(mean_b0, mni_t2_data,
-                                                        moving_grid2world=affine_DWI,
-                                                        static_grid2world=MNI_T2_affine,
-                                                        # step_length=0.1,
-                                                        # sigma_diff=2.0,
-                                                        metric='CC',
-                                                        dim=3, level_iters=[10, 10, 5],
-                                                        # prealign=affine.affine)
-                                                        prealign=starting_affine)
+    warped_moving, mapping = tools.syn_registration(mean_b0, mni_t2_data,
+                                                    moving_grid2world=affine_DWI,
+                                                    static_grid2world=MNI_T2_affine,
+                                                    # step_length=0.1,
+                                                    # sigma_diff=2.0,
+                                                    metric='CC',
+                                                    dim=3, level_iters=[10, 10, 5],
+                                                    # prealign=affine.affine)
+                                                    prealign=starting_affine)
 
-        for gradientDirection in rangos:
-            # print(gradientDirection)
-            directionWarped[:, :, :, gradientDirection] = mapping.transform(
-                data_DWI[:, :, :, gradientDirection].astype(int), interpolation='nearest')
+    for gradientDirection in rangos:
+        # print(gradientDirection)
+        directionWarped[:, :, :, gradientDirection] = mapping.transform(
+            data_DWI[:, :, :, gradientDirection].astype(int), interpolation='nearest')
 
-        nib.save(nib.Nifti1Image(directionWarped, MNI_T2_affine), path_out + ref_name + '_normalized' + d.extension)
+    nib.save(nib.Nifti1Image(directionWarped, MNI_T2_affine), path_out + ref_name + '_normalized' + d.extension)
+
 
     return path_out + ref_name + '_normalized' + d.extension, mapping
 
@@ -442,7 +443,7 @@ def registration_atlas_to(path_atlas, path_output, affine, mapping):
         nib.save(nib.Nifti1Image(filled_warped_roi.astype(np.float32), affine),
                  path_output + ref_name + '_ROI_' + str(index) + d.extension)
 
-        #print("ROI # " + str(index) + " for " + ref_name + " Atlas, has been saved")
+        # print("ROI # " + str(index) + " for " + ref_name + " Atlas, has been saved")
 
         if not ('registered_atlas' in locals()):
             registered_atlas = np.zeros(filled_warped_roi.shape)
@@ -576,7 +577,8 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         streamlines = list(streamlines)
 
-        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=affine_nmi, shape=roi.shape)
+        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=affine_nmi,
+                 shape=roi.shape)
 
         hdr = nib.trackvis.empty_header()
         hdr['voxel_size'] = nib.load(path_dwi_input).get_header().get_zooms()[:3]
@@ -585,10 +587,10 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         tensor_streamlines_trk = ((sl, None, None) for sl in streamlines)
 
-        nib.trackvis.write(path_output + '_prueba_tractography.trk', tensor_streamlines_trk, hdr_mapping=hdr, points_space='voxel')
+        nib.trackvis.write(path_output + '_prueba_tractography.trk', tensor_streamlines_trk, hdr_mapping=hdr,
+                           points_space='voxel')
 
         print('Finished ROI reconstruction')
-
 
         print('Starting TARGET filtering')
 
@@ -700,7 +702,9 @@ def toGenerateBunddle(roi1, roi2, data, gtab, affine):
         if sum(labelsROI) > 0:
             bunddle.append(sl_Aux)
 
-        save_trk('/home/jrudascas/Desktop/DWITest/Datos_Salida/BundleROI_to_ROI.trk', bunddle, affine=affine, shape=roi2.shape)
+        save_trk('/home/jrudascas/Desktop/DWITest/Datos_Salida/BundleROI_to_ROI.trk', bunddle, affine=affine,
+                 shape=roi2.shape)
+
 
 def connectivity_matrix(streamlines, label_volume, voxel_size=None,
                         affine=None, symmetric=True, return_mapping=False,
