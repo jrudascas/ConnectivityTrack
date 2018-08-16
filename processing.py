@@ -27,4 +27,4 @@ def processing(path_dwi_input, path_binary_mask, path_output, path_bval, path_bv
              (('AAN', [1, 3]), ('HypothalamusAtlas', [1, 2, 3]), ('HarvardOxfordCort', indexHarvardOxfortCortical)),
              (('Morel', [4, 18, 42, 56]), ('HarvardOxfordCort', indexHarvardOxfortCortical))]
 
-    p.to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval, path_bvec, rules, atlas_dict)
+    #p.to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval, path_bvec, rules, atlas_dict)

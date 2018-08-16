@@ -79,6 +79,13 @@ def run_main(path_input, path_output):
 
     os.mkdir(d.path_temporal)
 
+    print(' ')
+    print('-> Starting preprocessing of diffution image')
+
+    preprocessing_output = pre.preprocessing(files_found['dwi'], path_output, files_found['bvec'], files_found['bval'])
+
+    print('-> Ending preprocessing of diffution image')
+
     if 't1' in files_found:
         print(' ')
         print('-> Starting preprocessing of structural image')
@@ -89,18 +96,10 @@ def run_main(path_input, path_output):
             fsl.bet(files_found['t1'], path_output + refName + '_BET.nii', '-f .4')
 
         if not(os.path.exists(path_output + refName + '_BET_normalized.nii')):
-           warped_t1, MNI_T2_affine, mapping_t1 = p.registrationtoNMI(path_output + refName + '_BET.nii.gz', path_output)
-           nib.save(nib.Nifti1Image(warped_t1.astype(np.float32), MNI_T2_affine), path_output + refName + '_BET_normalized.nii')
+            warped_t1, static_affine, mapping_t1 = p.registration_to(path_output + refName + '_BET.nii.gz', files_found['pathb0Masked'], path_output)
 
         print('-> Ending preprocessing of structural image')
         print(' ')
-
-    print(' ')
-    print('-> Starting preprocessing of diffution image')
-
-    preprocessing_output = pre.preprocessing(files_found['dwi'], path_output, files_found['bvec'], files_found['bval'])
-
-    print('-> Ending preprocessing of diffution image')
 
     print(' ')
     print('....................................')
@@ -108,7 +107,12 @@ def run_main(path_input, path_output):
     print('....................................')
     print(' ')
 
-    pro.processing(preprocessing_output['pathNormalized'], d.brain_mask_nmi, path_output, files_found['bval'], files_found['bvec'])
+    pro.processing(preprocessing_output['pathDWIMasked'], preprocessing_output['pathBinaryMask'], path_output, files_found['bval'], files_found['bvec'])
+
+    p.registration_atlas_to(d.aan_atlas, path_output, affine, preprocessing_output['mapping_b0_to_NMI'])
+    p.registration_atlas_to(d.morel_atlas, path_output, affine, preprocessing_output['mapping_b0_to_NMI'])
+    p.registration_atlas_to(d.hypothalamus_atlas, path_output, affine, preprocessing_output['mapping_b0_to_NMI'])
+    p.registration_atlas_to(d.harvard_oxford_cort_atlas, path_output, affine, preprocessing_output['mapping_b0_to_NMI'])
 
     #print("Building connectivity matrix " + time.strftime("%H:%M:%S") )
     #M = p.connectivity_matrix2(streamlines, warped_atlas, affine=streamlines_affine, shape=mask_data.shape)

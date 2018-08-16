@@ -94,7 +94,7 @@ def betDWI(file_in, outPath):
         data[dataMask == 0] = 0
         nib.save(nib.Nifti1Image(data.astype(np.float32), img.affine), finalFileName)
 
-    return finalFileName, binaryMaskFileName
+    return finalFileName, binaryMaskFileName, b0MaskedFileName
 
 
 def nonLocalMean(file_in, outPath):
@@ -309,7 +309,7 @@ def to_register_dwi_to_mni(path_in, path_out, path_bvec, path_bval):
 
         nib.save(nib.Nifti1Image(directionWarped, MNI_T2_affine), path_out + ref_name + '_normalized' + d.extension)
 
-    return path_out + ref_name + '_normalized' + d.extension
+    return path_out + ref_name + '_normalized' + d.extension, mapping
 
 
 def to_register_t1_to_nmi(path_in, path_out):
@@ -366,21 +366,21 @@ def registrationtoNMI(file_in, outPath):
     return warped_moving, MNI_T2_affine, mapping
 
 
-def registrationto(file_in, file_reg):
-    img = nib.load(file_in)
-    data = img.get_data()
-    affineStructural = img.affine
+def registration_to(path_moving, path_static, path_output):
+    moving_img = nib.load(path_moving)
+    moving_data = moving_img.get_data()
+    moving_affine = moving_img.affine
 
-    MNI_T2 = nib.load(file_reg)
-    MNI_T2_data = MNI_T2.get_data()
-    MNI_T2_affine = MNI_T2.affine
+    img_static = nib.load(path_static)
+    static_data = img_static.get_data()
+    static_affine = img_static.affine
 
-    affine, starting_affine = tools.affine_registration(data, MNI_T2_data, moving_grid2world=affineStructural,
-                                                        static_grid2world=MNI_T2_affine)
+    affine, starting_affine = tools.affine_registration(moving_data, static_data, moving_grid2world=moving_affine,
+                                                        static_grid2world=static_affine)
 
-    warped_moving, mapping = tools.syn_registration(data, MNI_T2_data,
-                                                    moving_grid2world=affineStructural,
-                                                    static_grid2world=MNI_T2_affine,
+    warped_moving, mapping = tools.syn_registration(moving_data, static_data,
+                                                    moving_grid2world=moving_affine,
+                                                    static_grid2world=static_affine,
                                                     # step_length=0.1,
                                                     # sigma_diff=2.0,
                                                     metric='CC',
@@ -389,7 +389,12 @@ def registrationto(file_in, file_reg):
                                                     # prealign=affine.affine)
                                                     prealign=starting_affine)
 
-    return warped_moving, MNI_T2_affine, mapping
+    ref_name = utils.to_extract_filename(path_moving)
+
+    nib.save(nib.Nifti1Image(warped_moving.astype(np.float32), static_affine),
+             path_output + ref_name + '_BET_normalized.nii')
+
+    return warped_moving, static_affine, mapping
 
 
 def registerAffine_atlas(pathAtlas, pathStandard, outPath, tempPath, affineSubject, Subject):
@@ -414,13 +419,13 @@ def registerAffine_atlas(pathAtlas, pathStandard, outPath, tempPath, affineSubje
                       outPath + refNameOnly + '_ROI_' + str(index) + '_FLIRT' + d.extension, Subject, omatSubject)
 
 
-def register_atlas(pathAtlas, outPath, affineSubject, mapping):
-    atlas = nib.load(pathAtlas)
-    atlas_data = atlas.get_data()
+def registration_atlas_to(path_atlas, path_output, affine, mapping):
+    img_atlas = nib.load(path_atlas)
+    atlas_data = img_atlas.get_data()
 
     indexs = np.unique(atlas_data)
 
-    refNameOnly = utils.to_extract_filename(pathAtlas)
+    ref_name = utils.to_extract_filename(path_atlas)
 
     for index in indexs:
         roi = (atlas_data == index)
@@ -434,18 +439,19 @@ def register_atlas(pathAtlas, outPath, affineSubject, mapping):
 
         filled_warped_roi = ndim.binary_fill_holes(bin_warped_roi.astype(int)).astype(int)
 
-        nib.save(nib.Nifti1Image(filled_warped_roi.astype(np.float32), affineSubject),
-                 outPath + refNameOnly + '_ROI_' + str(index) + d.extension)
+        nib.save(nib.Nifti1Image(filled_warped_roi.astype(np.float32), affine),
+                 path_output + ref_name + '_ROI_' + str(index) + d.extension)
 
-        print("ROI # " + str(index) + " for " + refNameOnly + " Atlas, has been saved")
+        #print("ROI # " + str(index) + " for " + ref_name + " Atlas, has been saved")
 
-        if not ('registeredAtlas' in locals()):
-            registeredAtlas = np.zeros(filled_warped_roi.shape)
+        if not ('registered_atlas' in locals()):
+            registered_atlas = np.zeros(filled_warped_roi.shape)
 
-        registeredAtlas[filled_warped_roi != 0] = index
+        registered_atlas[filled_warped_roi != 0] = index
 
-    nib.save(nib.Nifti1Image(registeredAtlas, affineSubject), outPath + refNameOnly + '_ATLAS2' + d.extension)
-    return registeredAtlas.astype(np.int32)
+    nib.save(nib.Nifti1Image(registered_atlas, affine), path_output + ref_name + '_registered_' + d.extension)
+
+    return path_output + ref_name + '_registered_' + d.extension
 
 
 def connectivity_matrix2(streamlines, label_volume, affine, shape, voxel_size=None):
