@@ -19,12 +19,15 @@ for group in sorted(os.listdir(d.path_input)):
             path_subject = os.path.join(path_group, subject)
             if os.path.isdir(path_subject):
 
+                print(os.path.join(d.path_output, u.to_extract_foldername(d.path_input)))
                 if not (os.path.exists(os.path.join(d.path_output, u.to_extract_foldername(d.path_input)))):
                     os.mkdir(os.path.join(d.path_output, u.to_extract_filename_extention(d.path_input)))
 
+                print(os.path.join(os.path.join(d.path_output, u.to_extract_foldername(d.path_input)), group))
                 if not (os.path.exists(os.path.join(os.path.join(d.path_output, u.to_extract_foldername(d.path_input)), group))):
                     os.mkdir(os.path.join(os.path.join(d.path_output, u.to_extract_foldername(d.path_input)), group))
 
+                print(os.path.join(os.path.join(os.path.join(d.path_output, u.to_extract_foldername(d.path_input)), group), subject))
                 if not (os.path.exists(os.path.join(os.path.join(os.path.join(d.path_output, u.to_extract_foldername(d.path_input)), group), subject))):
                     os.mkdir(os.path.join(os.path.join(os.path.join(os.path.join(d.path_output, u.to_extract_foldername(d.path_input)), group), subject)))
 
