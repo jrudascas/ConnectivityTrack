@@ -107,7 +107,7 @@ def run_main(path_input, path_output):
     print('....................................')
     print(' ')
 
-    pro.processing(preprocessing_output['pathDWIMasked'], preprocessing_output['pathBinaryMask'], path_output, files_found['bval'], files_found['bvec'], preprocessing_output['mapping_b0_to_NMI'])
+    features_list = pro.processing(preprocessing_output['pathDWIMasked'], preprocessing_output['pathBinaryMask'], path_output, files_found['bval'], files_found['bvec'], preprocessing_output['mapping_b0_to_NMI'])
 
     #print("Building connectivity matrix " + time.strftime("%H:%M:%S") )
     #M = p.connectivity_matrix2(streamlines, warped_atlas, affine=streamlines_affine, shape=mask_data.shape)
@@ -121,3 +121,5 @@ def run_main(path_input, path_output):
     print('         Ending Processing         ')
     print('...................................')
     print(' ')
+
+    return features_list

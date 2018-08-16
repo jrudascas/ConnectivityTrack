@@ -175,6 +175,8 @@ def to_estimate_dti_maps(path_dwi_input, path_output, file_tensor_fitevecs, file
     ref_name_only = utils.to_extract_filename(file_tensor_fitevecs)
     ref_name_only = ref_name_only[:-9]
 
+    list_maps = []
+
     img_tensorFitevecs = nib.load(file_tensor_fitevecs)
     img_tensorFitevals = nib.load(file_tensor_fitevals)
 
@@ -188,6 +190,8 @@ def to_estimate_dti_maps(path_dwi_input, path_output, file_tensor_fitevecs, file
     FA[np.isnan(FA)] = 0
     nib.save(nib.Nifti1Image(FA.astype(np.float32), affine), path_output + ref_name_only + '_FA' + d.extension)
 
+    list_maps.append(path_output + ref_name_only + '_FA' + d.extension)
+
     print(d.separador + d.separador + 'computing of Color FA map')
     FA2 = np.clip(FA, 0, 1)
     RGB = color_fa(FA2, evecs)
@@ -198,13 +202,19 @@ def to_estimate_dti_maps(path_dwi_input, path_output, file_tensor_fitevecs, file
     MD = dti.mean_diffusivity(evals)
     nib.save(nib.Nifti1Image(MD.astype(np.float32), affine), path_output + ref_name_only + '_MD' + d.extension)
 
+    list_maps.append(path_output + ref_name_only + '_MD' + d.extension)
+
     print(d.separador + d.separador + 'computing of AD map')
     AD = dti.axial_diffusivity(evals)
     nib.save(nib.Nifti1Image(AD.astype(np.float32), affine), path_output + ref_name_only + '_AD' + d.extension)
 
+    list_maps.append(path_output + ref_name_only + '_AD' + d.extension)
+
     print(d.separador + d.separador + 'computing of RD map')
     RD = dti.radial_diffusivity(evals)
     nib.save(nib.Nifti1Image(RD.astype(np.float32), affine), path_output + ref_name_only + '_RD' + d.extension)
+
+    list_maps.append(path_output + ref_name_only + '_RD' + d.extension)
 
     sphere = get_sphere('symmetric724')
     peak_indices = quantize_evecs(evecs, sphere.vertices)
@@ -222,7 +232,7 @@ def to_estimate_dti_maps(path_dwi_input, path_output, file_tensor_fitevecs, file
     nib.trackvis.write(path_output + ref_name_only + '_tractography_EuDx.trk', tensor_streamlines_trk, hdr,
                        points_space='voxel')
 
-    return tensor_streamlines, eu.affine
+    return list_maps
 
 
 def to_generate_tractography(path_dwi_input, path_binary_mask, path_out, path_bval, path_bvec):
@@ -501,7 +511,7 @@ def connectivity_matrix2(streamlines, label_volume, affine, shape, voxel_size=No
     return matriz.astype(int)
 
 
-def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval, path_bvec, rules, atlas_dict):
+def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval, path_bvec, bunddle_rules, atlas_dict):
     from dipy.reconst.shm import CsaOdfModel
     from dipy.data import default_sphere
     from dipy.direction import peaks_from_model
@@ -537,38 +547,26 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
     ruleNumber = 1
 
-    for rule in rules:
+    list_bunddle = []
+
+    for rule in bunddle_rules:
         print('Starting ROI reconstruction')
 
         for elementROI in rule[0][1]:
-
-            #temp = nib.load(atlas_dict[rule[0][0]][elementROI - 1]).get_data()
-
             if not ('roi' in locals()):
-                #roi = np.zeros(temp.shape).astype(bool)
-                roi = nib.load(atlas_dict[rule[0][0]][elementROI - 1]).get_data().astype(bool)
+                roi = nib.load(atlas_dict[rule[0][0]][elementROI]).get_data().astype(bool)
             else:
-                #aux = np.zeros(temp.shape).astype(bool)
-                #aux[temp == elementROI] = True
-                roi = roi | nib.load(atlas_dict[rule[0][0]][elementROI - 1]).get_data().astype(bool)
+                roi = roi | nib.load(atlas_dict[rule[0][0]][elementROI]).get_data().astype(bool)
 
-        nib.save(nib.Nifti1Image(roi.astype(np.float32), dwi_affine),
-                 path_output + 'roi_rule_' + str(ruleNumber) + '.nii.gz')
+        nib.save(nib.Nifti1Image(roi.astype(np.float32), dwi_affine), path_output + 'roi_rule_' + str(ruleNumber) + '.nii.gz')
 
         for elementROI in rule[1][1]:
-            #temp = nib.load(atlas_dict[rule[1][0]]).get_data()
             if not ('target' in locals()):
-                #target = np.zeros(temp.shape).astype(bool)
-                #target[temp == elementROI] = True
-                target = nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
+                target = nib.load(atlas_dict[rule[1][0]][elementROI]).get_data().astype(bool)
             else:
-                target = target | nib.load(atlas_dict[rule[1][0]][elementROI - 1]).get_data().astype(bool)
-                #aux = np.zeros(temp.shape).astype(bool)
-                #aux[temp == elementROI] = True
-                #target = target | aux
+                target = target | nib.load(atlas_dict[rule[1][0]][elementROI]).get_data().astype(bool)
 
-        nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine),
-                 path_output + 'target_rule_' + str(ruleNumber) + '.nii.gz')
+        nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine), path_output + 'target_rule_' + str(ruleNumber) + '.nii.gz')
 
         seeds = utils.seeds_from_mask(roi.astype(bool), density=[2, 2, 2], affine=dwi_affine)
 
@@ -620,13 +618,13 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
                 if not ('roiFiltered' in locals()):
                  #   roiFiltered = np.zeros(temp.shape).astype(bool)
                  #   roiFiltered[temp == elementROI] = True
-                    roiFiltered = nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
+                    roiFiltered = nib.load(atlas_dict[rule[2][0]][elementROI]).get_data().astype(bool)
                 else:
                     #aux = np.zeros(temp.shape).astype(bool)
                     #aux[temp == elementROI] = True
 
                     #roiFiltered = roiFiltered | aux
-                    roiFiltered = roiFiltered | nib.load(atlas_dict[rule[2][0]][elementROI - 1]).get_data().astype(bool)
+                    roiFiltered = roiFiltered | nib.load(atlas_dict[rule[2][0]][elementROI]).get_data().astype(bool)
 
             bunddleFiltered = []
 
@@ -648,6 +646,27 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
         del target
 
         ruleNumber = ruleNumber + 1
+
+        list_bunddle.append(bunddleFiltered)
+
+    print(len(list_bunddle))
+
+    return list_bunddle
+
+def to_generate_report_aras(bunddle_list, list_maps, roi_rules, atlas_dict):
+
+    features_list = []
+
+    # Measuring over streamlines
+    for bunddle in bunddle_list:
+        features_list.append(len(bunddle)) # Fibers number
+
+    # Measuring over roi list
+    for rule in roi_rules:
+        for elementROI in rule[1]:
+            roi = nib.load(atlas_dict[rule[0]][elementROI - 1]).get_data().astype(bool)
+            for map in list_maps:
+                features_list.append(np.mean(map[roi]))
 
 
 def toGenerateBunddle(roi1, roi2, data, gtab, affine):

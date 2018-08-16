@@ -13,7 +13,7 @@ def processing(path_dwi_input, path_binary_mask, path_output, path_bval, path_bv
     f_tensor_fitevecs, f_tensor_fitevals = p.to_estimate_dti(path_dwi_input, path_binary_mask, path_output, path_bval,
                                                              path_bvec)
 
-    p.to_estimate_dti_maps(path_dwi_input, path_output, f_tensor_fitevecs, f_tensor_fitevals)
+    list_maps = p.to_estimate_dti_maps(path_dwi_input, path_output, f_tensor_fitevecs, f_tensor_fitevals)
 
     # p.to_generate_tractography(path_dwi_input, path_binary_mask, path_output, path_bval, path_bvec)
 
@@ -30,8 +30,13 @@ def processing(path_dwi_input, path_binary_mask, path_output, path_bval, path_bv
     atlas_dict = {'Morel': list_path_atlas_2, 'AAN': list_path_atlas_1, 'HarvardOxfordCort': list_path_atlas_4,
                   'HypothalamusAtlas': list_path_atlas_3}
 
-    rules = [(('AAN', [1, 3]), ('Morel', [4, 18, 42, 56]), ('HarvardOxfordCort', indexHarvardOxfortCortical)),
-             (('AAN', [1, 3]), ('HypothalamusAtlas', [1, 2, 3]), ('HarvardOxfordCort', indexHarvardOxfortCortical)),
+    bunddle_rules = [(('AAN', [3, 6]), ('Morel', [4, 18, 42, 56]), ('HarvardOxfordCort', indexHarvardOxfortCortical)),
+             (('AAN', [3, 6]), ('HypothalamusAtlas', [1, 2, 3]), ('HarvardOxfordCort', indexHarvardOxfortCortical)),
              (('Morel', [4, 18, 42, 56]), ('HarvardOxfordCort', indexHarvardOxfortCortical))]
 
-    p.to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval, path_bvec, rules, atlas_dict)
+    list_bunddle = p.to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval, path_bvec, bunddle_rules, atlas_dict)
+
+    roi_rules = {('AAN', [3, 6]), ('Morel', [4, 18, 42, 56]), ('HypothalamusAtlas', [1, 2, 3])}
+    features_list = p.to_generate_report_aras(list_bunddle, list_maps, roi_rules, atlas_dict)
+
+    return features_list
