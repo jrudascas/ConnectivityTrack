@@ -9,6 +9,10 @@ def to_extract_filename_extention(path_input):
     return path_input.split('/')[path_input.split('/').__len__() - 1]
 
 
+def to_extract_foldername(path_input):
+    return path_input.split('/')[path_input.split('/').__len__() - 2]
+
+
 def to_extract_filename(path_input):
     refName = to_extract_filename_extention(path_input)
     return refName.split('.')[0]

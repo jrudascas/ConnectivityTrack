@@ -18,9 +18,9 @@ for group in sorted(os.listdir(d.path_input)):
         for subject in sorted(os.listdir(path_group)):
             path_subject = os.path.join(path_group, subject)
             if os.path.isdir(path_subject):
-                print(u.to_extract_filename_extention(d.path_output))
-                if not (os.path.exists(os.path.join(d.path_output, u.to_extract_filename_extention(d.path_output)))):
-                    os.mkdir(os.path.join(d.path_output, u.to_extract_filename_extention(d.path_output)))
+
+                if not (os.path.exists(os.path.join(d.path_output, u.to_extract_foldername(d.path_input)))):
+                    os.mkdir(os.path.join(d.path_output, u.to_extract_filename_extention(d.path_input)))
 
                 if not (os.path.exists(os.path.join(d.path_output, group))):
                     os.mkdir(os.path.join(d.path_output, group))
@@ -29,5 +29,5 @@ for group in sorted(os.listdir(d.path_input)):
                     os.mkdir(os.path.join(os.path.join(d.path_output, group), subject))
 
                 m.run_main(path_subject, os.path.join(
-                    os.path.join(os.path.join(d.path_output, u.to_extract_filename_extention(d.path_output)), group),
+                    os.path.join(os.path.join(d.path_output, u.to_extract_filename_extention(d.path_input)), group),
                     subject) + '/')
