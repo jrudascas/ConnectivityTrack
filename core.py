@@ -654,7 +654,7 @@ def to_generate_report_aras(bunddle_list, list_maps, roi_rules, atlas_dict):
         for elementROI in roi_rules[key]:
             roi = nib.load(atlas_dict[key][elementROI]).get_data().astype(bool)
             for map in list_maps:
-                features_list.append(np.mean(map[roi]))
+                features_list.append(np.mean(nib.load(map).get_data()[roi]))
 
 
 def toGenerateBunddle(roi1, roi2, data, gtab, affine):
