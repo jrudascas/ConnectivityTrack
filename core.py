@@ -545,6 +545,8 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
     list_bunddle = []
 
+    ruleNumber = 1
+
     for rule in bunddle_rules:
         print('Starting ROI reconstruction')
 
