@@ -36,7 +36,7 @@ def processing(path_dwi_input, path_binary_mask, path_output, path_bval, path_bv
 
     list_bunddle = p.to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval, path_bvec, bunddle_rules, atlas_dict)
 
-    roi_rules = {('AAN', [3, 6]), ('Morel', [4, 18, 42, 56]), ('HypothalamusAtlas', [1, 2, 3])}
+    roi_rules = {'AAN':[3, 6], 'Morel':[4, 18, 42, 56], 'HypothalamusAtlas':[1, 2, 3]}
     features_list = p.to_generate_report_aras(list_bunddle, list_maps, roi_rules, atlas_dict)
 
     return features_list

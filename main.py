@@ -121,5 +121,5 @@ def run_main(path_input, path_output):
     print('         Ending Processing         ')
     print('...................................')
     print(' ')
-
+    np.savetxt(path_output + 'feature.out', np.array(features_list), delimiter=' ', fmt='%s')
     return features_list
