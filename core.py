@@ -566,9 +566,11 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
             else:
                 target = target | nib.load(atlas_dict[rule[1][0]][elementROI]).get_data().astype(bool)
 
+        affine_roi = nib.load(atlas_dict[rule[1][0]][elementROI]).affine
+
         nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine), path_output + 'target_rule_' + str(ruleNumber) + '.nii.gz')
 
-        seeds = utils.seeds_from_mask(roi.astype(bool), density=[2, 2, 2], affine=dwi_affine)
+        seeds = utils.seeds_from_mask(roi.astype(bool), density=[2, 2, 2], affine=affine_roi)
 
         streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=1)
 
@@ -576,7 +578,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         streamlines = list(streamlines)
 
-        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=dwi_affine,
+        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=affine_roi,
                  shape=roi.shape)
 
         hdr = nib.trackvis.empty_header()
@@ -614,16 +616,9 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
             print('Starting exclusive filtering')
 
             for elementROI in rule[2][1]:
-                #temp = nib.load(atlas_dict[rule[2][0]]).get_data()
                 if not ('roiFiltered' in locals()):
-                 #   roiFiltered = np.zeros(temp.shape).astype(bool)
-                 #   roiFiltered[temp == elementROI] = True
                     roiFiltered = nib.load(atlas_dict[rule[2][0]][elementROI]).get_data().astype(bool)
                 else:
-                    #aux = np.zeros(temp.shape).astype(bool)
-                    #aux[temp == elementROI] = True
-
-                    #roiFiltered = roiFiltered | aux
                     roiFiltered = roiFiltered | nib.load(atlas_dict[rule[2][0]][elementROI]).get_data().astype(bool)
 
             bunddleFiltered = []
@@ -662,9 +657,9 @@ def to_generate_report_aras(bunddle_list, list_maps, roi_rules, atlas_dict):
         features_list.append(len(bunddle)) # Fibers number
 
     # Measuring over roi list
-    for rule in roi_rules:
-        for elementROI in rule[1]:
-            roi = nib.load(atlas_dict[rule[0]][elementROI - 1]).get_data().astype(bool)
+    for key in roi_rules.keys():
+        for elementROI in roi_rules[key]:
+            roi = nib.load(atlas_dict[key][elementROI]).get_data().astype(bool)
             for map in list_maps:
                 features_list.append(np.mean(map[roi]))
 
