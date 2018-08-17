@@ -23,7 +23,7 @@ from dipy.segment.mask import median_otsu
 import definitions as d
 import tools as tools
 import scipy.ndimage as ndim
-from dipy.io.streamline import save_trk
+from dipy.io.trackvis import save_trk
 from dipy.denoise.noise_estimate import estimate_sigma
 
 
@@ -525,17 +525,15 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
     dwi_data = dwi_img.get_data()
     dwi_affine = dwi_img.affine
 
-    dwi_mask_data = nib.load(path_binary_mask).get_data()
+    dwi_mask_data = nib.load(path_binary_mask).get_data().astype(bool)
 
     g_tab = gradient_table(path_bval, path_bvec)
-
-    lin_T, offset = _mapping_to_voxel(dwi_affine, None)
 
     csa_model = CsaOdfModel(g_tab, sh_order=6)
 
     csa_peaks = peaks_from_model(csa_model, dwi_data, default_sphere, sh_order=6,
                                  relative_peak_threshold=.8,
-                                 min_separation_angle=25, mask=dwi_mask_data.astype(bool))
+                                 min_separation_angle=25, mask=dwi_mask_data)
 
     print(d.separador + 'ending of model')
 
@@ -544,8 +542,6 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
     classifier = ThresholdTissueClassifier(csa_peaks.gfa, .2)
 
     print(d.separador + 'ending of classifier')
-
-    ruleNumber = 1
 
     list_bunddle = []
 
@@ -566,11 +562,9 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
             else:
                 target = target | nib.load(atlas_dict[rule[1][0]][elementROI]).get_data().astype(bool)
 
-        affine_roi = nib.load(atlas_dict[rule[1][0]][elementROI]).affine
-
         nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine), path_output + 'target_rule_' + str(ruleNumber) + '.nii.gz')
 
-        seeds = utils.seeds_from_mask(roi.astype(bool), density=[2, 2, 2], affine=affine_roi)
+        seeds = utils.seeds_from_mask(roi, density=[2, 2, 2], affine=dwi_affine)
 
         streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=1)
 
@@ -578,7 +572,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         streamlines = list(streamlines)
 
-        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=affine_roi,
+        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=dwi_affine,
                  shape=roi.shape)
 
         hdr = nib.trackvis.empty_header()
@@ -596,6 +590,8 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
         print('Starting TARGET filtering')
 
         bunddle = []
+
+        lin_T, offset = _mapping_to_voxel(dwi_affine, None)
 
         for sl in streamlines:
             # sl += offset
@@ -643,9 +639,6 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
         ruleNumber = ruleNumber + 1
 
         list_bunddle.append(bunddleFiltered)
-
-    print(len(list_bunddle))
-
     return list_bunddle
 
 def to_generate_report_aras(bunddle_list, list_maps, roi_rules, atlas_dict):
