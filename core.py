@@ -574,18 +574,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         streamlines = list(streamlines)
 
-        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, affine=dwi_affine,
-                 shape=roi.shape)
-
-        hdr = nib.trackvis.empty_header()
-        hdr['voxel_size'] = nib.load(path_dwi_input).get_header().get_zooms()[:3]
-        hdr['voxel_order'] = 'LAS'
-        hdr['dim'] = roi.shape
-
-        tensor_streamlines_trk = ((sl, None, None) for sl in streamlines)
-
-        nib.trackvis.write(path_output + '_prueba_tractography.trk', tensor_streamlines_trk, hdr_mapping=hdr,
-                           points_space='voxel')
+        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, dwi_affine, roi.shape)
 
         print('Finished ROI reconstruction')
 
@@ -606,7 +595,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
             if sum(labelsROI) > 0:
                 bunddle.append(sl_Aux)
 
-        save_trk(path_output + 'bundleROI_to_TARGET_rule_' + str(ruleNumber) + '.trk', bunddle, affine=dwi_affine)
+        save_trk(path_output + 'bundleROI_to_TARGET_rule_' + str(ruleNumber) + '.trk', bunddle, dwi_affine, roi.shape)
 
         print('Finished TARGET filtering')
 
@@ -631,7 +620,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
                     bunddleFiltered.append(b_Aux)
 
             save_trk(path_output + 'bundleROI_to_TARGET_Filtered_rule_' + str(ruleNumber) + '.trk', bunddleFiltered,
-                     affine=dwi_affine)
+                     dwi_affine, roi.shape)
 
             print('Finished exclusive filtering:')
             del roiFiltered
