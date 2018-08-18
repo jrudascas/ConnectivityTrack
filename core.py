@@ -647,6 +647,8 @@ def to_generate_report_aras(bunddle_list, list_maps, roi_rules, atlas_dict):
             for map in list_maps:
                 features_list.append(np.mean(nib.load(map).get_data()[roi]))
 
+    return features_list
+
 
 def toGenerateBunddle(roi1, roi2, data, gtab, affine):
     print('Starting Bundles generator')
