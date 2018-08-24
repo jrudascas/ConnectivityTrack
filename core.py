@@ -624,6 +624,10 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
             print('Finished exclusive filtering:')
             del roiFiltered
+        else:
+            del bunddleFiltered
+            bunddleFiltered = bunddle
+
         del roi
         del target
 
