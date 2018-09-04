@@ -257,8 +257,8 @@ def to_generate_tractography(path_dwi_input, path_binary_mask, path_out, path_bv
         csa_model = CsaOdfModel(g_tab, sh_order=6)
 
         csa_peaks = peaks_from_model(csa_model, dwi_data, default_sphere, sh_order=6,
-                                     relative_peak_threshold=.8,
-                                     min_separation_angle=25, mask=dwi_mask_data.astype(bool))
+                                     relative_peak_threshold=.85,
+                                     min_separation_angle=35, mask=dwi_mask_data.astype(bool))
 
         classifier = ThresholdTissueClassifier(csa_peaks.gfa, .2)
 
@@ -533,7 +533,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
     csa_peaks = peaks_from_model(csa_model, dwi_data, default_sphere, sh_order=6,
                                  relative_peak_threshold=.8,
-                                 min_separation_angle=25, mask=dwi_mask_data)
+                                 min_separation_angle=35, mask=dwi_mask_data)
 
     print(d.separador + 'ending of model')
 

@@ -2,7 +2,7 @@ __author__ = 'Jrudascas'
 
 import os
 
-path_input = '/home/runlab/data/alejandra/'
+path_input = '/home/runlab/data/sanjose/'
 path_output = '/home/runlab/data/results/'
 path_temporal = '/home/runlab/data/results/temporal/'
 
