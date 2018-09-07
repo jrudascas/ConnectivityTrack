@@ -270,7 +270,7 @@ def to_generate_tractography(path_dwi_input, path_binary_mask, path_out, path_bv
 
         streamlines = list(streamlines)
 
-        save_trk(path_out + '_tractography_CsaOdf' + '.trk', streamlines, affine=dwi_affine, shape=dwi_data.shape)
+        save_trk(path_out + '_tractography_CsaOdf' + '.trk', streamlines, dwi_affine, dwi_data.shape)
 
     print('    - Ending reconstruction of Tractography...')
 
@@ -649,7 +649,7 @@ def to_generate_report_aras(bunddle_list, list_maps, roi_rules, atlas_dict):
     # Measuring over roi list
     for key in roi_rules.keys():
         for elementROI in roi_rules[key]:
-            roi = nib.load(atlas_dict[key][elementROI]).get_data().astype(bool)
+            roi = nib.load(atlas_dict[key][elementROI-1]).get_data().astype(bool)
             for map in list_maps:
                 features_list.append(np.mean(nib.load(map).get_data()[roi]))
                 features_list.append(np.min(nib.load(map).get_data()[roi]))
