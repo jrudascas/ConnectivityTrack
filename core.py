@@ -558,14 +558,6 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         nib.save(nib.Nifti1Image(roi.astype(np.float32), dwi_affine), path_output + 'roi_rule_' + str(ruleNumber) + '.nii.gz')
 
-        for elementROI in rule[1][1]:
-            if not ('target' in locals()):
-                target = nib.load(atlas_dict[rule[1][0]][elementROI]).get_data().astype(bool)
-            else:
-                target = target | nib.load(atlas_dict[rule[1][0]][elementROI]).get_data().astype(bool)
-
-        nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine), path_output + 'target_rule_' + str(ruleNumber) + '.nii.gz')
-
         seeds = utils.seeds_from_mask(roi, density=[2, 2, 2], affine=dwi_affine)
 
         streamlines = LocalTracking(csa_peaks, classifier, seeds, dwi_affine, step_size=1)
@@ -574,7 +566,7 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         streamlines = list(streamlines)
 
-        save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, dwi_affine, roi.shape)
+        #save_trk(path_output + 'bundleROI_rule_' + str(ruleNumber) + '.trk', streamlines, dwi_affine, roi.shape)
 
         print('Finished ROI reconstruction')
 
@@ -584,23 +576,33 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
         lin_T, offset = _mapping_to_voxel(dwi_affine, None)
 
-        for sl in streamlines:
-            # sl += offset
-            # sl_Aux = np.copy(sl)
-            sl_Aux = sl
-            sl = _to_voxel_coordinates(sl, lin_T, offset)
-            i, j, k = sl.T
-            labelsROI = target[i, j, k]
+        if rule[1] is not None:
+            for elementROI in rule[1][1]:
+                if not ('target' in locals()):
+                    target = nib.load(atlas_dict[rule[1][0]][elementROI]).get_data().astype(bool)
+                else:
+                    target = target | nib.load(atlas_dict[rule[1][0]][elementROI]).get_data().astype(bool)
 
-            if sum(labelsROI) > 0:
-                bunddle.append(sl_Aux)
+            #nib.save(nib.Nifti1Image(target.astype(np.float32), dwi_affine), path_output + 'target_rule_' + str(ruleNumber) + '.nii.gz')
 
-        save_trk(path_output + 'bundleROI_to_TARGET_rule_' + str(ruleNumber) + '.trk', bunddle, dwi_affine, roi.shape)
+            for sl in streamlines:
+                # sl += offset
+                # sl_Aux = np.copy(sl)
+                sl_Aux = sl
+                sl = _to_voxel_coordinates(sl, lin_T, offset)
+                i, j, k = sl.T
+                labelsROI = target[i, j, k]
+
+                if sum(labelsROI) > 0:
+                    bunddle.append(sl_Aux)
+        else:
+            bunddle = streamlines
+
+        #save_trk(path_output + 'bundle_rule_' + str(ruleNumber) + '.trk', bunddle, dwi_affine, roi.shape)
 
         print('Finished TARGET filtering')
 
         if len(rule) == 3:  # If is necessary other filtering (exclusition)
-            print('Starting exclusive filtering')
 
             for elementROI in rule[2][1]:
                 if not ('roiFiltered' in locals()):
@@ -619,14 +621,14 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
                 if sum(labelsROI) == 0:
                     bunddleFiltered.append(b_Aux)
 
-            save_trk(path_output + 'bundleROI_to_TARGET_Filtered_rule_' + str(ruleNumber) + '.trk', bunddleFiltered,
-                     dwi_affine, roi.shape)
 
             print('Finished exclusive filtering:')
             del roiFiltered
         else:
             del bunddleFiltered
             bunddleFiltered = bunddle
+
+        save_trk(path_output + 'bundle_rule_' + str(ruleNumber) + '.trk', bunddleFiltered, dwi_affine, roi.shape)
 
         del roi
         del target
