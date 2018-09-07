@@ -270,7 +270,7 @@ def to_generate_tractography(path_dwi_input, path_binary_mask, path_out, path_bv
 
         streamlines = list(streamlines)
 
-        save_trk(path_out + '_tractography_CsaOdf' + '.trk', streamlines, dwi_affine, dwi_data.shape)
+        save_trk(path_out + '_tractography_CsaOdf' + '.trk', streamlines, dwi_affine, dwi_mask_data.shape)
 
     print('    - Ending reconstruction of Tractography...')
 
