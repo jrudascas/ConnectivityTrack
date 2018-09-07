@@ -623,15 +623,20 @@ def to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval
 
 
             print('Finished exclusive filtering:')
-            del roiFiltered
+            if 'roiFiltered' in locals():
+                del roiFiltered
         else:
-            del bunddleFiltered
+            if 'bunddleFiltered' in locals():
+                del bunddleFiltered
+
             bunddleFiltered = bunddle
 
         save_trk(path_output + 'bundle_rule_' + str(ruleNumber) + '.trk', bunddleFiltered, dwi_affine, roi.shape)
 
-        del roi
-        del target
+        if 'roi' in locals():
+            del roi
+        if 'target' in locals():
+            del target
 
         ruleNumber = ruleNumber + 1
 
