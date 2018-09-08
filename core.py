@@ -654,8 +654,8 @@ def to_generate_report_aras(bunddle_list, list_maps, roi_rules, atlas_dict):
     # Measuring over roi list
     for key in roi_rules.keys():
         for elementROI in roi_rules[key]:
-            print(atlas_dict[key][elementROI - 1])
-            roi = nib.load(atlas_dict[key][elementROI-1]).get_data().astype(bool)
+            print(atlas_dict[key][elementROI])
+            roi = nib.load(atlas_dict[key][elementROI]).get_data().astype(bool)
 
             for map in list_maps:
                 data_map = nib.load(map).get_data()[roi]
