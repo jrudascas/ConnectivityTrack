@@ -7,7 +7,7 @@ warnings.filterwarnings("always")
 import core as p
 import definitions as d
 import nibabel as nib
-
+import collections
 
 def processing(path_dwi_input, path_binary_mask, path_output, path_bval, path_bvec, mapping):
     f_tensor_fitevecs, f_tensor_fitevals = p.to_estimate_dti(path_dwi_input, path_binary_mask, path_output, path_bval,
@@ -40,7 +40,13 @@ def processing(path_dwi_input, path_binary_mask, path_output, path_bval, path_bv
     list_bunddle = p.to_generate_bunddle(path_dwi_input, path_output, path_binary_mask, path_bval, path_bvec,
                                          bunddle_rules, atlas_dict)
 
-    roi_rules = {'AAN': [1, 3], 'Morel': [4, 5, 6, 18, 42, 43, 44, 56], 'HypothalamusAtlas': [1, 2, 3]}
+
+
+    roi_rules = collections.OrderedDict()
+    roi_rules['AAN'] = [1, 3]
+    roi_rules['Morel'] = [4, 5, 6, 18, 42, 43, 44, 56]
+    roi_rules['HypothalamusAtlas'] = [1, 2, 3]
+
     features_list = p.to_generate_report_aras(list_bunddle, list_maps, roi_rules, atlas_dict)
 
     return features_list
